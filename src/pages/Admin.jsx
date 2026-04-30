@@ -66,6 +66,9 @@ export default function Admin() {
   const [appointments, setAppointments] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [busyAppointmentId, setBusyAppointmentId] = useState("");
+  const [galleryFiles, setGalleryFiles] = useState([]);
+  const [isLoadingGallery, setIsLoadingGallery] = useState(true);
+  const [isUploadingGallery, setIsUploadingGallery] = useState(false);
 
   useEffect(() => {
     let isActive = true;
@@ -94,6 +97,52 @@ export default function Admin() {
     }
 
     loadAppointments();
+
+    return () => {
+      isActive = false;
+    };
+  }, []);
+
+  useEffect(() => {
+    let isActive = true;
+
+    async function loadGalleryFiles() {
+      setIsLoadingGallery(true);
+
+      const { data, error } = await supabase.storage.from("gallery").list("", {
+        limit: 100,
+        sortBy: { column: "created_at", order: "desc" },
+      });
+
+      if (!isActive) {
+        return;
+      }
+
+      if (error) {
+        console.error("Failed to fetch gallery files:", error);
+        setGalleryFiles([]);
+        setIsLoadingGallery(false);
+        return;
+      }
+
+      const nextFiles = (data ?? [])
+        .filter((item) => item.name && !item.name.endsWith("/"))
+        .map((item) => {
+          const { data: publicUrlData } = supabase.storage
+            .from("gallery")
+            .getPublicUrl(item.name);
+
+          return {
+            name: item.name,
+            url: publicUrlData.publicUrl,
+          };
+        });
+
+      setGalleryFiles(nextFiles);
+      setIsLoadingGallery(false);
+    }
+
+    loadGalleryFiles();
 
     return () => {
       isActive = false;
@@ -169,6 +218,39 @@ export default function Admin() {
     setBusyAppointmentId("");
   }
 
+  async function uploadGalleryImage(e) {
+    const file = e.target.files?.[0];
+    if (!file) {
+      return;
+    }
+
+    setIsUploadingGallery(true);
+    const safeName = file.name.replace(/\s+/g, "-").toLowerCase();
+    const fileName = `${Date.now()}-${safeName}`;
+
+    const { error } = await supabase.storage.from("gallery").upload(fileName, file);
+
+    if (error) {
+      console.error("Failed to upload gallery image:", error);
+      alert("Something went wrong");
+      setIsUploadingGallery(false);
+      e.target.value = "";
+      return;
+    }
+
+    const { data: publicUrlData } = supabase.storage
+      .from("gallery")
+      .getPublicUrl(fileName);
+
+    setGalleryFiles((prev) => [
+      { name: fileName, url: publicUrlData.publicUrl },
+      ...prev,
+    ]);
+    alert("Gallery image uploaded successfully");
+    setIsUploadingGallery(false);
+    e.target.value = "";
+  }
+
   return (
     <div className="py-12 sm:py-16">
       <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
@@ -212,6 +294,57 @@ export default function Admin() {
               </Card>
             ))}
           </div>
+        </Reveal>
+
+        <Reveal className="mt-10">
+          <Card className="p-6">
+            <div className="flex flex-wrap items-end justify-between gap-4">
+              <div>
+                <p className="font-display text-2xl text-beige">Gallery Uploads</p>
+                <p className="mt-1 text-sm text-beige/65">
+                  Upload images to the `gallery` bucket for the public gallery page.
+                </p>
+              </div>
+              <label className="inline-flex cursor-pointer items-center justify-center rounded-full bg-gold px-5 py-3 text-sm font-medium text-ink transition hover:brightness-110 active:brightness-95 shadow-glow">
+                {isUploadingGallery ? "Uploading..." : "Upload Image"}
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={uploadGalleryImage}
+                  disabled={isUploadingGallery}
+                  className="sr-only"
+                />
+              </label>
+            </div>
+
+            {isLoadingGallery ? (
+              <p className="mt-6 text-sm text-beige/65">Loading gallery images...</p>
+            ) : galleryFiles.length === 0 ? (
+              <p className="mt-6 text-sm text-beige/65">
+                No uploaded gallery images yet.
+              </p>
+            ) : (
+              <div className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+                {galleryFiles.map((file, index) => (
+                  <div
+                    key={`${file.name}-${index}`}
+                    className="group relative overflow-hidden rounded-2xl border border-beige/10 bg-beige/5"
+                  >
+                    <img
+                      src={file.url}
+                      alt={file.name}
+                      className="h-40 w-full object-cover opacity-90 transition duration-500 group-hover:scale-[1.02] group-hover:opacity-100"
+                      loading="lazy"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-ink/80 via-transparent to-transparent opacity-80" />
+                    <p className="absolute bottom-3 left-3 right-3 truncate text-xs text-beige/90">
+                      {file.name}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            )}
+          </Card>
         </Reveal>
 
         <Reveal className="mt-10">

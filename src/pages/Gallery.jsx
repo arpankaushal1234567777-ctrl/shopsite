@@ -1,9 +1,60 @@
+import { useEffect, useState } from "react";
 import Button from "../components/Button.jsx";
 import Reveal from "../components/Reveal.jsx";
 import SectionHeading from "../components/SectionHeading.jsx";
+import { supabase } from "../lib/supabase.js";
 import { galleryImages } from "../data/content.js";
 
 export default function Gallery() {
+  const [images, setImages] = useState(galleryImages);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    let isActive = true;
+
+    async function loadGalleryImages() {
+      setIsLoading(true);
+
+      const { data, error } = await supabase.storage.from("gallery").list("", {
+        limit: 100,
+        sortBy: { column: "created_at", order: "desc" },
+      });
+
+      if (!isActive) {
+        return;
+      }
+
+      if (error) {
+        console.error("Failed to fetch gallery images:", error);
+        setImages(galleryImages);
+        setIsLoading(false);
+        return;
+      }
+
+      const storageImages = (data ?? [])
+        .filter((item) => item.name && !item.name.endsWith("/"))
+        .map((item) => {
+          const { data: publicUrlData } = supabase.storage
+            .from("gallery")
+            .getPublicUrl(item.name);
+
+          return {
+            alt: item.name.replace(/\.[^.]+$/, "").replace(/[-_]/g, " "),
+            src: publicUrlData.publicUrl,
+          };
+        });
+
+      setImages(storageImages.length > 0 ? storageImages : galleryImages);
+      setIsLoading(false);
+    }
+
+    loadGalleryImages();
+
+    return () => {
+      isActive = false;
+    };
+  }, []);
+
   return (
     <div className="py-12 sm:py-16">
       <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
@@ -19,7 +70,7 @@ export default function Gallery() {
         </div>
 
         <div className="mt-10 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-          {galleryImages.map((img, idx) => (
+          {images.map((img, idx) => (
             <Reveal key={img.alt + idx} delayMs={idx * 40}>
               <div className="group relative overflow-hidden rounded-2xl border border-beige/10 bg-beige/5">
                 <img
@@ -36,8 +87,13 @@ export default function Gallery() {
             </Reveal>
           ))}
         </div>
+
+        {isLoading ? (
+          <p className="mt-6 text-center text-sm text-beige/60">
+            Loading gallery...
+          </p>
+        ) : null}
       </div>
     </div>
   );
 }
-
