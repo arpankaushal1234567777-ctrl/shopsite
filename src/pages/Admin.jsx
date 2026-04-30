@@ -53,6 +53,15 @@ function getStatusClasses(status) {
   return "border border-yellow-500/25 bg-yellow-500/15 text-yellow-200";
 }
 
+function getTodayDateString() {
+  const today = new Date();
+  const year = today.getFullYear();
+  const month = `${today.getMonth() + 1}`.padStart(2, "0");
+  const day = `${today.getDate()}`.padStart(2, "0");
+
+  return `${year}-${month}-${day}`;
+}
+
 export default function Admin() {
   const [appointments, setAppointments] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -100,6 +109,17 @@ export default function Admin() {
       })),
     [appointments],
   );
+
+  const analytics = useMemo(() => {
+    const today = getTodayDateString();
+
+    return {
+      total: rows.length,
+      today: rows.filter((appointment) => appointment.date === today).length,
+      pending: rows.filter((appointment) => appointment.status === "pending").length,
+      completed: rows.filter((appointment) => appointment.status === "completed").length,
+    };
+  }, [rows]);
 
   async function markAsCompleted(id) {
     setBusyAppointmentId(id);
@@ -157,6 +177,42 @@ export default function Admin() {
           title="Admin Dashboard"
           subtitle="View the latest appointment requests in one place."
         />
+
+        <Reveal className="mt-10">
+          <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+            {[
+              {
+                label: "Total Bookings",
+                value: analytics.total,
+                tone: "text-beige",
+              },
+              {
+                label: "Today’s Bookings",
+                value: analytics.today,
+                tone: "text-gold",
+              },
+              {
+                label: "Pending Bookings",
+                value: analytics.pending,
+                tone: "text-yellow-200",
+              },
+              {
+                label: "Completed Bookings",
+                value: analytics.completed,
+                tone: "text-emerald-200",
+              },
+            ].map((item) => (
+              <Card key={item.label} className="p-6">
+                <p className="text-xs uppercase tracking-[0.22em] text-gold/75">
+                  {item.label}
+                </p>
+                <p className={`mt-4 font-display text-4xl ${item.tone}`}>
+                  {isLoading ? "..." : item.value}
+                </p>
+              </Card>
+            ))}
+          </div>
+        </Reveal>
 
         <Reveal className="mt-10">
           <Card className="overflow-hidden">
