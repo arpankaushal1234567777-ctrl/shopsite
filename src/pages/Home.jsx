@@ -31,6 +31,15 @@ export default function Home() {
                 <Button as="link" to="/book">
                   Book Appointment
                 </Button>
+                <Button
+                  as="a"
+                  href="https://wa.me/917505519340?text=Hi, I want to book an appointment at Blush and Beauty"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  variant="whatsapp"
+                >
+                  Book via WhatsApp
+                </Button>
                 <Button as="link" to="/services" variant="ghost">
                   View Services
                 </Button>

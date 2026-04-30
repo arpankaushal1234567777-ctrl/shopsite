@@ -14,6 +14,8 @@ export default function Button({
 }) {
   const variants = {
     gold: "bg-gold text-ink hover:brightness-110 active:brightness-95 shadow-glow",
+    whatsapp:
+      "bg-[#25D366] text-white hover:brightness-110 active:brightness-95 shadow-glow",
     ghost:
       "border border-beige/20 bg-beige/5 text-beige hover:border-gold/40 hover:bg-beige/10",
   };
@@ -42,4 +44,3 @@ export default function Button({
     </button>
   );
 }
-

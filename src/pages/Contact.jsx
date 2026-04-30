@@ -13,9 +13,20 @@ export default function Contact() {
             title="Let’s get you booked"
             subtitle="Reach out for packages, custom requests, or questions."
           />
-          <Button as="link" to="/book" className="shrink-0">
-            Book Now
-          </Button>
+          <div className="flex flex-wrap gap-3">
+            <Button as="link" to="/book" className="shrink-0">
+              Book Now
+            </Button>
+            <Button
+              as="a"
+              href="https://wa.me/917505519340?text=Hi, I want to book an appointment at Blush and Beauty"
+              target="_blank"
+              rel="noopener noreferrer"
+              variant="whatsapp"
+            >
+              Book via WhatsApp
+            </Button>
+          </div>
         </div>
 
         <div className="mt-10 grid gap-4 lg:grid-cols-2">
@@ -76,8 +87,10 @@ export default function Contact() {
               </div>
               <div className="mt-8 flex flex-wrap gap-3">
                 <a
-                  className="px-4 py-2 rounded-full border border-beige/15 bg-beige/5 text-beige/80 hover:text-beige hover:border-gold/25 transition"
-                  href="#"
+                  className="px-4 py-2 rounded-full border border-[#25D366]/30 bg-[#25D366]/10 text-[#7ef0a5] hover:text-white hover:border-[#25D366]/60 hover:bg-[#25D366]/20 transition"
+                  href="https://wa.me/917505519340?text=Hi, I want to book an appointment at Blush and Beauty"
+                  target="_blank"
+                  rel="noreferrer"
                 >
                   WhatsApp
                 </a>

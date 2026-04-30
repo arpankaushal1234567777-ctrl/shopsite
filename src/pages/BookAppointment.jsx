@@ -56,6 +56,7 @@ export default function BookAppointment() {
   const [isLoadingSlots, setIsLoadingSlots] = useState(false);
   const [availableSlots, setAvailableSlots] = useState(timeSlots);
   const [form, setForm] = useState(initialForm(defaultService));
+  const [whatsappLink, setWhatsappLink] = useState(null);
 
   function update(key, value) {
     setForm((prev) => ({ ...prev, [key]: value }));
@@ -112,6 +113,7 @@ export default function BookAppointment() {
     }
 
     setIsSubmitting(true);
+    setWhatsappLink(null);
 
     const { data: existingAppointments, error: existingAppointmentsError } = await supabase
       .from("appointments")
@@ -151,6 +153,18 @@ export default function BookAppointment() {
 
     console.log("Appointment booked:", data);
     alert("Appointment booked successfully!");
+    const message = `New Appointment Request:
+Name: ${form.name}
+Phone: ${form.phone}
+Service: ${form.service}
+Date: ${form.date}
+Time: ${normalizedSelectedTime}`;
+    const whatsappUrl = `https://wa.me/917505519340?text=${encodeURIComponent(message)}`;
+    setWhatsappLink(whatsappUrl);
+
+    setTimeout(() => {
+      window.open(whatsappUrl, "_blank");
+    }, 500);
     setForm(initialForm(defaultService));
     setAvailableSlots(timeSlots);
     setIsSubmitting(false);
@@ -279,6 +293,17 @@ export default function BookAppointment() {
                     {isSubmitting ? "Submitting..." : "Submit"}
                   </Button>
                 </div>
+
+                {whatsappLink ? (
+                  <a
+                    href={whatsappLink}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="mt-4 inline-flex w-full items-center justify-center rounded-full bg-[#25D366] px-6 py-3 text-sm font-medium text-white transition hover:brightness-110 active:brightness-95 sm:w-auto"
+                  >
+                    Continue on WhatsApp
+                  </a>
+                ) : null}
               </form>
             </Card>
           </Reveal>
