@@ -87,7 +87,7 @@ export default function Contact() {
               </div>
               <div className="mt-8 flex flex-wrap gap-3">
                 <a
-                  className="px-4 py-2 rounded-full border border-[#25D366]/30 bg-[#25D366]/10 text-[#7ef0a5] hover:text-white hover:border-[#25D366]/60 hover:bg-[#25D366]/20 transition"
+                  className="inline-flex items-center justify-center gap-2 rounded-full bg-gold px-5 py-3 text-sm font-medium text-ink transition hover:brightness-110 active:brightness-95 shadow-glow"
                   href="https://wa.me/917505519340?text=Hi, I want to book an appointment at Blush and Beauty"
                   target="_blank"
                   rel="noreferrer"

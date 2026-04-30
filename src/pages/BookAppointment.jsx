@@ -299,7 +299,7 @@ Time: ${normalizedSelectedTime}`;
                     href={whatsappLink}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="mt-4 inline-flex w-full items-center justify-center rounded-full bg-[#25D366] px-6 py-3 text-sm font-medium text-white transition hover:brightness-110 active:brightness-95 sm:w-auto"
+                    className="mt-4 inline-flex w-full items-center justify-center rounded-full bg-gold px-6 py-3 text-sm font-medium text-ink transition hover:brightness-110 active:brightness-95 shadow-glow sm:w-auto"
                   >
                     Continue on WhatsApp
                   </a>
