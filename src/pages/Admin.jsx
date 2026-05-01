@@ -110,10 +110,17 @@ export default function Admin() {
     async function loadGalleryFiles() {
       setIsLoadingGallery(true);
 
-      const { data, error } = await supabase.storage.from("gallery").list("", {
+      const bucketName = "gallery";
+      const folderPath = "";
+      const { data, error } = await supabase.storage.from(bucketName).list(folderPath, {
         limit: 100,
+        offset: 0,
         sortBy: { column: "name", order: "asc" },
       });
+
+      console.log("Admin gallery list() bucket:", bucketName);
+      console.log("Admin gallery list() path:", folderPath);
+      console.log("Admin gallery list() raw response:", data);
 
       if (!isActive) {
         return;
@@ -130,8 +137,10 @@ export default function Admin() {
         .filter((item) => item.name && !item.name.endsWith("/"))
         .map((item) => {
           const { data: publicUrlData } = supabase.storage
-            .from("gallery")
+            .from(bucketName)
             .getPublicUrl(item.name);
+
+          console.log("Admin gallery public URL:", item.name, publicUrlData.publicUrl);
 
           return {
             name: item.name,
@@ -150,6 +159,10 @@ export default function Admin() {
       isActive = false;
     };
   }, []);
+
+  useEffect(() => {
+    console.log("Admin gallery state:", galleryFiles);
+  }, [galleryFiles]);
 
   const rows = useMemo(
     () =>
