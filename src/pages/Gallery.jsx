@@ -3,10 +3,9 @@ import Button from "../components/Button.jsx";
 import Reveal from "../components/Reveal.jsx";
 import SectionHeading from "../components/SectionHeading.jsx";
 import { supabase } from "../lib/supabase.js";
-import { galleryImages } from "../data/content.js";
 
 export default function Gallery() {
-  const [images, setImages] = useState(galleryImages);
+  const [images, setImages] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -17,7 +16,7 @@ export default function Gallery() {
 
       const { data, error } = await supabase.storage.from("gallery").list("", {
         limit: 100,
-        sortBy: { column: "created_at", order: "desc" },
+        sortBy: { column: "name", order: "asc" },
       });
 
       if (!isActive) {
@@ -26,7 +25,7 @@ export default function Gallery() {
 
       if (error) {
         console.error("Failed to fetch gallery images:", error);
-        setImages(galleryImages);
+        setImages([]);
         setIsLoading(false);
         return;
       }
@@ -39,12 +38,13 @@ export default function Gallery() {
             .getPublicUrl(item.name);
 
           return {
-            alt: item.name.replace(/\.[^.]+$/, "").replace(/[-_]/g, " "),
-            src: publicUrlData.publicUrl,
+            name: item.name,
+            url: publicUrlData.publicUrl,
           };
         });
 
-      setImages(storageImages.length > 0 ? storageImages : galleryImages);
+      console.log("Fetched gallery images:", storageImages);
+      setImages(storageImages);
       setIsLoading(false);
     }
 
@@ -71,17 +71,17 @@ export default function Gallery() {
 
         <div className="mt-10 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           {images.map((img, idx) => (
-            <Reveal key={img.alt + idx} delayMs={idx * 40}>
+            <Reveal key={img.name + idx} delayMs={idx * 40}>
               <div className="group relative overflow-hidden rounded-2xl border border-beige/10 bg-beige/5">
                 <img
-                  src={img.src}
-                  alt={img.alt}
+                  src={img.url}
+                  alt={img.name}
                   className="h-72 w-full object-cover opacity-90 group-hover:opacity-100 group-hover:scale-[1.02] transition duration-500"
                   loading="lazy"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-ink/85 via-transparent to-transparent opacity-80" />
                 <p className="absolute bottom-4 left-4 right-4 text-sm text-beige/90">
-                  {img.alt}
+                  {img.name}
                 </p>
               </div>
             </Reveal>
@@ -91,6 +91,12 @@ export default function Gallery() {
         {isLoading ? (
           <p className="mt-6 text-center text-sm text-beige/60">
             Loading gallery...
+          </p>
+        ) : null}
+
+        {!isLoading && images.length === 0 ? (
+          <p className="mt-6 text-center text-sm text-beige/60">
+            No uploaded gallery images yet
           </p>
         ) : null}
       </div>

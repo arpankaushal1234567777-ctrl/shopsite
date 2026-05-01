@@ -69,6 +69,7 @@ export default function Admin() {
   const [galleryFiles, setGalleryFiles] = useState([]);
   const [isLoadingGallery, setIsLoadingGallery] = useState(true);
   const [isUploadingGallery, setIsUploadingGallery] = useState(false);
+  const [busyGalleryFileName, setBusyGalleryFileName] = useState("");
 
   useEffect(() => {
     let isActive = true;
@@ -111,7 +112,7 @@ export default function Admin() {
 
       const { data, error } = await supabase.storage.from("gallery").list("", {
         limit: 100,
-        sortBy: { column: "created_at", order: "desc" },
+        sortBy: { column: "name", order: "asc" },
       });
 
       if (!isActive) {
@@ -138,6 +139,7 @@ export default function Admin() {
           };
         });
 
+      console.log("Fetched admin gallery images:", nextFiles);
       setGalleryFiles(nextFiles);
       setIsLoadingGallery(false);
     }
@@ -251,6 +253,28 @@ export default function Admin() {
     e.target.value = "";
   }
 
+  async function deleteGalleryImage(fileName) {
+    const confirmed = window.confirm("Delete this gallery image?");
+    if (!confirmed) {
+      return;
+    }
+
+    setBusyGalleryFileName(fileName);
+
+    const { error } = await supabase.storage.from("gallery").remove([fileName]);
+
+    if (error) {
+      console.error("Failed to delete gallery image:", error);
+      alert("Something went wrong");
+      setBusyGalleryFileName("");
+      return;
+    }
+
+    console.log("Deleted gallery image:", fileName);
+    setGalleryFiles((prev) => prev.filter((file) => file.name !== fileName));
+    setBusyGalleryFileName("");
+  }
+
   return (
     <div className="py-12 sm:py-16">
       <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
@@ -340,6 +364,14 @@ export default function Admin() {
                     <p className="absolute bottom-3 left-3 right-3 truncate text-xs text-beige/90">
                       {file.name}
                     </p>
+                    <button
+                      type="button"
+                      onClick={() => deleteGalleryImage(file.name)}
+                      disabled={busyGalleryFileName === file.name}
+                      className="absolute right-3 top-3 rounded-full border border-red-400/20 bg-red-500/80 px-3 py-1 text-xs font-medium text-white opacity-0 transition group-hover:opacity-100 disabled:cursor-not-allowed disabled:opacity-50"
+                    >
+                      {busyGalleryFileName === file.name ? "..." : "Delete"}
+                    </button>
                   </div>
                 ))}
               </div>
