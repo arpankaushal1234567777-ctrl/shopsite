@@ -5,6 +5,7 @@ import Reveal from "../components/Reveal.jsx";
 import SectionHeading from "../components/SectionHeading.jsx";
 import Card from "../components/Card.jsx";
 import { supabase } from "../lib/supabase.js";
+import { services } from "../data/content.js";
 
 function formatBookingDate(value) {
   if (!value) {
@@ -66,9 +67,19 @@ function getTodayDateString() {
 
 export default function Admin() {
   const navigate = useNavigate();
+  const serviceOptions = useMemo(() => services.map((service) => service.title), []);
   const [appointments, setAppointments] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [busyAppointmentId, setBusyAppointmentId] = useState("");
+  const [searchValue, setSearchValue] = useState("");
+  const [editingBooking, setEditingBooking] = useState(null);
+  const [editForm, setEditForm] = useState({
+    name: "",
+    phone: "",
+    service: "",
+    date: "",
+    time: "",
+  });
   const [galleryFiles, setGalleryFiles] = useState([]);
   const [isLoadingGallery, setIsLoadingGallery] = useState(true);
   const [isUploadingGallery, setIsUploadingGallery] = useState(false);
@@ -188,6 +199,17 @@ export default function Admin() {
     };
   }, [rows]);
 
+  const filteredRows = useMemo(() => {
+    const normalizedSearch = searchValue.trim().toLowerCase();
+    if (!normalizedSearch) {
+      return rows;
+    }
+
+    return rows.filter((appointment) =>
+      (appointment.phone ?? "").toLowerCase().includes(normalizedSearch),
+    );
+  }, [rows, searchValue]);
+
   async function markAsCompleted(id) {
     setBusyAppointmentId(id);
 
@@ -233,6 +255,73 @@ export default function Admin() {
 
     setAppointments((prev) => prev.filter((appointment) => appointment.id !== id));
     alert("Appointment deleted successfully");
+    setBusyAppointmentId("");
+  }
+
+  function openEditBooking(appointment) {
+    setEditingBooking(appointment);
+    setEditForm({
+      name: appointment.name ?? "",
+      phone: appointment.phone ?? "",
+      service: appointment.service ?? serviceOptions[0] ?? "",
+      date: appointment.date ?? "",
+      time: appointment.time ?? "",
+    });
+  }
+
+  function closeEditBooking() {
+    setEditingBooking(null);
+    setEditForm({
+      name: "",
+      phone: "",
+      service: "",
+      date: "",
+      time: "",
+    });
+  }
+
+  async function saveBookingEdits(e) {
+    e.preventDefault();
+    if (!editingBooking) {
+      return;
+    }
+
+    setBusyAppointmentId(editingBooking.id);
+
+    const { error } = await supabase
+      .from("appointments")
+      .update({
+        name: editForm.name,
+        phone: editForm.phone,
+        service: editForm.service,
+        date: editForm.date,
+        time: editForm.time,
+      })
+      .eq("id", editingBooking.id);
+
+    if (error) {
+      console.error("Failed to update booking:", error);
+      alert("Something went wrong");
+      setBusyAppointmentId("");
+      return;
+    }
+
+    setAppointments((prev) =>
+      prev.map((appointment) =>
+        appointment.id === editingBooking.id
+          ? {
+              ...appointment,
+              name: editForm.name,
+              phone: editForm.phone,
+              service: editForm.service,
+              date: editForm.date,
+              time: editForm.time,
+            }
+          : appointment,
+      ),
+    );
+    closeEditBooking();
+    alert("Booking updated successfully");
     setBusyAppointmentId("");
   }
 
@@ -412,11 +501,19 @@ export default function Admin() {
               <p className="mt-1 text-sm text-beige/65">
                 Latest bookings appear first.
               </p>
+              <div className="mt-4">
+                <input
+                  value={searchValue}
+                  onChange={(e) => setSearchValue(e.target.value)}
+                  className="h-12 w-full max-w-sm rounded-xl bg-ink border border-beige/15 px-4 text-beige placeholder:text-beige/40 focus:outline-none focus:ring-2 focus:ring-gold/50"
+                  placeholder="Search by phone number"
+                />
+              </div>
             </div>
 
             {isLoading ? (
               <div className="px-6 py-12 text-center text-beige/75">Loading...</div>
-            ) : rows.length === 0 ? (
+            ) : filteredRows.length === 0 ? (
               <div className="px-6 py-12 text-center text-beige/75">
                 नो bookings available
               </div>
@@ -437,7 +534,7 @@ export default function Admin() {
                       </tr>
                     </thead>
                     <tbody>
-                      {rows.map((appointment) => (
+                      {filteredRows.map((appointment) => (
                         <tr
                           key={appointment.id}
                           className="border-b border-beige/8 transition hover:bg-beige/5"
@@ -457,6 +554,14 @@ export default function Admin() {
                           <td className="px-6 py-4">{formatCreatedAt(appointment.created_at)}</td>
                           <td className="px-6 py-4">
                             <div className="flex flex-wrap gap-2">
+                              <button
+                                type="button"
+                                onClick={() => openEditBooking(appointment)}
+                                disabled={busyAppointmentId === appointment.id}
+                                className="inline-flex items-center justify-center rounded-full border border-beige/20 bg-beige/5 px-4 py-2 text-xs font-medium text-beige transition hover:border-gold/40 hover:bg-beige/10 disabled:cursor-not-allowed disabled:opacity-50"
+                              >
+                                Edit
+                              </button>
                               <button
                                 type="button"
                                 onClick={() => markAsCompleted(appointment.id)}
@@ -492,6 +597,103 @@ export default function Admin() {
             )}
           </Card>
         </Reveal>
+
+        {editingBooking ? (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-ink/70 px-4 py-6 backdrop-blur-sm">
+            <Card className="w-full max-w-2xl p-8">
+              <div className="flex items-start justify-between gap-4">
+                <div>
+                  <p className="font-display text-2xl text-beige">Edit Booking</p>
+                  <p className="mt-1 text-sm text-beige/65">
+                    Update booking details and save changes instantly.
+                  </p>
+                </div>
+                <Button type="button" variant="ghost" onClick={closeEditBooking}>
+                  Close
+                </Button>
+              </div>
+
+              <form className="mt-6 grid gap-4 sm:grid-cols-2" onSubmit={saveBookingEdits}>
+                <label className="grid gap-2">
+                  <span className="text-sm text-beige/70">Name</span>
+                  <input
+                    value={editForm.name}
+                    onChange={(e) =>
+                      setEditForm((prev) => ({ ...prev, name: e.target.value }))
+                    }
+                    className="h-12 rounded-xl bg-ink border border-beige/15 px-4 text-beige placeholder:text-beige/40 focus:outline-none focus:ring-2 focus:ring-gold/50"
+                    required
+                  />
+                </label>
+
+                <label className="grid gap-2">
+                  <span className="text-sm text-beige/70">Phone</span>
+                  <input
+                    value={editForm.phone}
+                    onChange={(e) =>
+                      setEditForm((prev) => ({ ...prev, phone: e.target.value }))
+                    }
+                    className="h-12 rounded-xl bg-ink border border-beige/15 px-4 text-beige placeholder:text-beige/40 focus:outline-none focus:ring-2 focus:ring-gold/50"
+                    required
+                  />
+                </label>
+
+                <label className="grid gap-2">
+                  <span className="text-sm text-beige/70">Service</span>
+                  <select
+                    value={editForm.service}
+                    onChange={(e) =>
+                      setEditForm((prev) => ({ ...prev, service: e.target.value }))
+                    }
+                    className="h-12 rounded-xl bg-ink border border-beige/15 px-4 text-beige focus:outline-none focus:ring-2 focus:ring-gold/50"
+                    required
+                  >
+                    {serviceOptions.map((service) => (
+                      <option key={service} value={service}>
+                        {service}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+
+                <label className="grid gap-2">
+                  <span className="text-sm text-beige/70">Date</span>
+                  <input
+                    type="date"
+                    value={editForm.date}
+                    onChange={(e) =>
+                      setEditForm((prev) => ({ ...prev, date: e.target.value }))
+                    }
+                    className="h-12 rounded-xl bg-ink border border-beige/15 px-4 text-beige focus:outline-none focus:ring-2 focus:ring-gold/50"
+                    required
+                  />
+                </label>
+
+                <label className="grid gap-2 sm:col-span-2">
+                  <span className="text-sm text-beige/70">Time</span>
+                  <input
+                    value={editForm.time}
+                    onChange={(e) =>
+                      setEditForm((prev) => ({ ...prev, time: e.target.value }))
+                    }
+                    className="h-12 rounded-xl bg-ink border border-beige/15 px-4 text-beige placeholder:text-beige/40 focus:outline-none focus:ring-2 focus:ring-gold/50"
+                    placeholder="10:00 AM"
+                    required
+                  />
+                </label>
+
+                <div className="flex flex-wrap gap-3 sm:col-span-2">
+                  <Button type="submit" disabled={busyAppointmentId === editingBooking.id}>
+                    {busyAppointmentId === editingBooking.id ? "Saving..." : "Save Changes"}
+                  </Button>
+                  <Button type="button" variant="ghost" onClick={closeEditBooking}>
+                    Cancel
+                  </Button>
+                </div>
+              </form>
+            </Card>
+          </div>
+        ) : null}
       </div>
     </div>
   );
