@@ -15,7 +15,10 @@ import AdminLogin from "./pages/AdminLogin.jsx";
 import ManageBooking from "./pages/ManageBooking.jsx";
 import NotFound from "./pages/NotFound.jsx";
 
-const ADMIN_EMAIL = "your-email@gmail.com";
+const ADMIN_EMAILS = [
+  "arpankaushal1234567777@gmail.com",
+  "reenakaushal00@gmail.com",
+];
 
 function ProtectedAdminRoute({ children }) {
   const [isChecking, setIsChecking] = useState(true);
@@ -32,14 +35,14 @@ function ProtectedAdminRoute({ children }) {
         return;
       }
 
-      if (data.session && sessionEmail !== ADMIN_EMAIL) {
+      if (data.session && !ADMIN_EMAILS.includes(sessionEmail)) {
         await supabase.auth.signOut();
         setIsAllowed(false);
         setIsChecking(false);
         return;
       }
 
-      setIsAllowed(Boolean(data.session) && sessionEmail === ADMIN_EMAIL);
+      setIsAllowed(Boolean(data.session) && ADMIN_EMAILS.includes(sessionEmail));
       setIsChecking(false);
     }
 
@@ -50,14 +53,14 @@ function ProtectedAdminRoute({ children }) {
     } = supabase.auth.onAuthStateChange(async (_event, session) => {
       const sessionEmail = session?.user?.email ?? "";
 
-      if (session && sessionEmail !== ADMIN_EMAIL) {
+      if (session && !ADMIN_EMAILS.includes(sessionEmail)) {
         await supabase.auth.signOut();
         setIsAllowed(false);
         setIsChecking(false);
         return;
       }
 
-      setIsAllowed(Boolean(session) && sessionEmail === ADMIN_EMAIL);
+      setIsAllowed(Boolean(session) && ADMIN_EMAILS.includes(sessionEmail));
       setIsChecking(false);
     });
 

@@ -5,7 +5,10 @@ import Card from "../components/Card.jsx";
 import SectionHeading from "../components/SectionHeading.jsx";
 import { supabase } from "../lib/supabase.js";
 
-const ADMIN_EMAIL = "your-email@gmail.com";
+const ADMIN_EMAILS = [
+  "arpankaushal1234567777@gmail.com",
+  "reenakaushal00@gmail.com",
+];
 
 export default function AdminLogin() {
   const navigate = useNavigate();
@@ -19,7 +22,7 @@ export default function AdminLogin() {
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
       const sessionEmail = data.session?.user?.email ?? "";
-      setHasSession(sessionEmail === ADMIN_EMAIL);
+      setHasSession(ADMIN_EMAILS.includes(sessionEmail));
       setIsCheckingSession(false);
     });
   }, []);
@@ -41,7 +44,7 @@ export default function AdminLogin() {
     }
 
     const userEmail = data.user?.email ?? "";
-    if (userEmail !== ADMIN_EMAIL) {
+    if (!ADMIN_EMAILS.includes(userEmail)) {
       await supabase.auth.signOut();
       setErrorMessage("This account is not allowed to access admin.");
       setIsSubmitting(false);
