@@ -1,4 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import Button from "../components/Button.jsx";
 import Reveal from "../components/Reveal.jsx";
 import SectionHeading from "../components/SectionHeading.jsx";
 import Card from "../components/Card.jsx";
@@ -63,6 +65,7 @@ function getTodayDateString() {
 }
 
 export default function Admin() {
+  const navigate = useNavigate();
   const [appointments, setAppointments] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [busyAppointmentId, setBusyAppointmentId] = useState("");
@@ -288,14 +291,24 @@ export default function Admin() {
     setBusyGalleryFileName("");
   }
 
+  async function handleLogout() {
+    await supabase.auth.signOut();
+    navigate("/admin-login", { replace: true });
+  }
+
   return (
     <div className="py-12 sm:py-16">
       <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
-        <SectionHeading
-          eyebrow="Admin"
-          title="Admin Dashboard"
-          subtitle="View the latest appointment requests in one place."
-        />
+        <div className="flex items-end justify-between gap-6 flex-wrap">
+          <SectionHeading
+            eyebrow="Admin"
+            title="Admin Dashboard"
+            subtitle="View the latest appointment requests in one place."
+          />
+          <Button type="button" variant="ghost" onClick={handleLogout}>
+            Logout
+          </Button>
+        </div>
 
         <Reveal className="mt-10">
           <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
