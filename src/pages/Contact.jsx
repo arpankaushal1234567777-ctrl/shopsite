@@ -143,6 +143,40 @@ export default function Contact() {
             </Card>
           </Reveal>
         </div>
+
+        <div className="mt-16">
+          <div className="flex items-end justify-between gap-6 flex-wrap">
+            <SectionHeading
+              eyebrow="Location"
+              title="Find Us"
+              subtitle="Visit our salon at your convenience and enjoy a calm, premium experience."
+            />
+          </div>
+
+          <Reveal className="mt-8">
+            <div className="overflow-hidden rounded-3xl shadow-xl border border-beige/10 bg-beige/5">
+              <iframe
+                src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d886.9151314487649!2d78.00375982841598!3d27.22980609100443!2m3!1f0!2f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x397479e597a93405%3A0xbd76ca34e2a39657!2sVimal%20Super%20market!5e0!3m2!1sen!2sin!4v1777635718027!5m2!1sen!2sin"
+                width="100%"
+                height="400"
+                style={{ border: 0 }}
+                loading="lazy"
+                className="block w-full"
+              />
+            </div>
+          </Reveal>
+
+          <div className="mt-6 flex justify-center sm:justify-start">
+            <Button
+              as="a"
+              href="https://www.google.com/maps?q=27.22980609100443,78.00375982841598"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              Open in Google Maps
+            </Button>
+          </div>
+        </div>
       </div>
     </div>
   );

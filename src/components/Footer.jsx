@@ -40,6 +40,18 @@ export default function Footer() {
                 Shop No. 4, Upper Ground Floor, Dayal Plaza, Near Dayal
                 Apartment, 100ft Road, Dayal Bagh, Agra
               </p>
+              <div className="pt-2">
+                <Button
+                  as="a"
+                  href="https://www.google.com/maps?q=27.22980609100443,78.00375982841598"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  variant="ghost"
+                  className="px-4 py-2"
+                >
+                  Open Location
+                </Button>
+              </div>
               <p>Timing: 10:00 AM – 8:00 PM (All Days)</p>
             </div>
           </div>
