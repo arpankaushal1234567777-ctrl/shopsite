@@ -5,7 +5,7 @@ import Reveal from "../components/Reveal.jsx";
 import SectionHeading from "../components/SectionHeading.jsx";
 import Card from "../components/Card.jsx";
 import { supabase } from "../lib/supabase.js";
-import { services } from "../data/content.js";
+import { services as fallbackServices } from "../data/content.js";
 
 function formatBookingDate(value) {
   if (!value) {
@@ -67,11 +67,20 @@ function getTodayDateString() {
 
 export default function Admin() {
   const navigate = useNavigate();
-  const serviceOptions = useMemo(() => services.map((service) => service.title), []);
+  const [services, setServices] = useState(fallbackServices);
+  const serviceOptions = useMemo(() => services.map((service) => service.title), [services]);
   const [appointments, setAppointments] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [busyAppointmentId, setBusyAppointmentId] = useState("");
   const [searchValue, setSearchValue] = useState("");
+  const [busyServiceId, setBusyServiceId] = useState("");
+  const [editingService, setEditingService] = useState(null);
+  const [serviceForm, setServiceForm] = useState({
+    name: "",
+    description: "",
+    price: "",
+    image_url: "",
+  });
   const [editingBooking, setEditingBooking] = useState(null);
   const [editForm, setEditForm] = useState({
     name: "",
@@ -87,6 +96,32 @@ export default function Admin() {
 
   useEffect(() => {
     let isActive = true;
+
+    async function loadServices() {
+      const { data, error } = await supabase
+        .from("services")
+        .select("id, name, description, price, image_url, created_at")
+        .order("created_at", { ascending: true });
+
+      if (!isActive || error) {
+        if (error) {
+          console.error("Failed to fetch admin services:", error);
+        }
+        return;
+      }
+
+      setServices(
+        (data ?? []).length > 0
+          ? data.map((service) => ({
+              id: service.id,
+              title: service.name,
+              desc: service.description,
+              price: service.price,
+              image_url: service.image_url,
+            }))
+          : fallbackServices,
+      );
+    }
 
     async function loadAppointments() {
       setIsLoading(true);
@@ -111,6 +146,7 @@ export default function Admin() {
       setIsLoading(false);
     }
 
+    loadServices();
     loadAppointments();
 
     return () => {
@@ -358,6 +394,129 @@ export default function Admin() {
     e.target.value = "";
   }
 
+  function resetServiceForm() {
+    setServiceForm({
+      name: "",
+      description: "",
+      price: "",
+      image_url: "",
+    });
+    setEditingService(null);
+  }
+
+  async function saveService(e) {
+    e.preventDefault();
+
+    if (editingService?.id) {
+      setBusyServiceId(editingService.id);
+      const { data, error } = await supabase
+        .from("services")
+        .update({
+          name: serviceForm.name,
+          description: serviceForm.description,
+          price: serviceForm.price,
+          image_url: serviceForm.image_url,
+        })
+        .eq("id", editingService.id)
+        .select("id, name, description, price, image_url");
+
+      if (error) {
+        console.error("Failed to update service:", error);
+        alert("Something went wrong");
+        setBusyServiceId("");
+        return;
+      }
+
+      const updatedService = data?.[0];
+      if (updatedService) {
+        setServices((prev) =>
+          prev.map((service) =>
+            service.id === updatedService.id
+              ? {
+                  ...service,
+                  title: updatedService.name,
+                  desc: updatedService.description,
+                  price: updatedService.price,
+                  image_url: updatedService.image_url,
+                }
+              : service,
+          ),
+        );
+      }
+
+      resetServiceForm();
+      setBusyServiceId("");
+      return;
+    }
+
+    setBusyServiceId("new");
+    const { data, error } = await supabase
+      .from("services")
+      .insert([
+        {
+          name: serviceForm.name,
+          description: serviceForm.description,
+          price: serviceForm.price,
+          image_url: serviceForm.image_url,
+        },
+      ])
+      .select("id, name, description, price, image_url");
+
+    if (error) {
+      console.error("Failed to add service:", error);
+      alert("Something went wrong");
+      setBusyServiceId("");
+      return;
+    }
+
+    const createdService = data?.[0];
+    if (createdService) {
+      setServices((prev) => [
+        ...prev,
+        {
+          id: createdService.id,
+          title: createdService.name,
+          desc: createdService.description,
+          price: createdService.price,
+          image_url: createdService.image_url,
+        },
+      ]);
+    }
+
+    resetServiceForm();
+    setBusyServiceId("");
+  }
+
+  function openEditService(service) {
+    setEditingService(service);
+    setServiceForm({
+      name: service.title ?? "",
+      description: service.desc ?? "",
+      price: service.price ?? "",
+      image_url: service.image_url ?? "",
+    });
+  }
+
+  async function deleteService(id) {
+    const confirmed = window.confirm("Delete this service?");
+    if (!confirmed) {
+      return;
+    }
+
+    setBusyServiceId(id);
+    const { error } = await supabase.from("services").delete().eq("id", id);
+
+    if (error) {
+      console.error("Failed to delete service:", error);
+      alert("Something went wrong");
+      setBusyServiceId("");
+      return;
+    }
+
+    setServices((prev) => prev.filter((service) => service.id !== id));
+    setBusyServiceId("");
+  }
+
   async function deleteGalleryImage(fileName) {
     const confirmed = window.confirm("Delete this gallery image?");
     if (!confirmed) {
@@ -433,6 +592,127 @@ export default function Admin() {
               </Card>
             ))}
           </div>
+        </Reveal>
+
+        <Reveal className="mt-10">
+          <Card className="p-6">
+            <div className="flex flex-wrap items-end justify-between gap-4">
+              <div>
+                <p className="font-display text-2xl text-beige">Services</p>
+                <p className="mt-1 text-sm text-beige/65">
+                  Add, edit, and remove services shown across the site.
+                </p>
+              </div>
+              {editingService ? (
+                <Button type="button" variant="ghost" onClick={resetServiceForm}>
+                  Cancel Edit
+                </Button>
+              ) : null}
+            </div>
+
+            <form className="mt-6 grid gap-4 sm:grid-cols-2" onSubmit={saveService}>
+              <label className="grid gap-2">
+                <span className="text-sm text-beige/70">Name</span>
+                <input
+                  value={serviceForm.name}
+                  onChange={(e) =>
+                    setServiceForm((prev) => ({ ...prev, name: e.target.value }))
+                  }
+                  className="h-12 rounded-xl bg-ink border border-beige/15 px-4 text-beige placeholder:text-beige/40 focus:outline-none focus:ring-2 focus:ring-gold/50"
+                  required
+                />
+              </label>
+
+              <label className="grid gap-2">
+                <span className="text-sm text-beige/70">Price</span>
+                <input
+                  value={serviceForm.price}
+                  onChange={(e) =>
+                    setServiceForm((prev) => ({ ...prev, price: e.target.value }))
+                  }
+                  className="h-12 rounded-xl bg-ink border border-beige/15 px-4 text-beige placeholder:text-beige/40 focus:outline-none focus:ring-2 focus:ring-gold/50"
+                  placeholder="₹500"
+                  required
+                />
+              </label>
+
+              <label className="grid gap-2 sm:col-span-2">
+                <span className="text-sm text-beige/70">Description</span>
+                <textarea
+                  value={serviceForm.description}
+                  onChange={(e) =>
+                    setServiceForm((prev) => ({ ...prev, description: e.target.value }))
+                  }
+                  className="min-h-28 rounded-xl bg-ink border border-beige/15 px-4 py-3 text-beige placeholder:text-beige/40 focus:outline-none focus:ring-2 focus:ring-gold/50"
+                  required
+                />
+              </label>
+
+              <label className="grid gap-2 sm:col-span-2">
+                <span className="text-sm text-beige/70">Image URL</span>
+                <input
+                  value={serviceForm.image_url}
+                  onChange={(e) =>
+                    setServiceForm((prev) => ({ ...prev, image_url: e.target.value }))
+                  }
+                  className="h-12 rounded-xl bg-ink border border-beige/15 px-4 text-beige placeholder:text-beige/40 focus:outline-none focus:ring-2 focus:ring-gold/50"
+                  placeholder="https://..."
+                  required
+                />
+              </label>
+
+              <div className="sm:col-span-2">
+                <Button
+                  type="submit"
+                  disabled={busyServiceId === "new" || busyServiceId === editingService?.id}
+                >
+                  {editingService
+                    ? busyServiceId === editingService.id
+                      ? "Saving..."
+                      : "Save Service"
+                    : busyServiceId === "new"
+                      ? "Adding..."
+                      : "Add Service"}
+                </Button>
+              </div>
+            </form>
+
+            <div className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+              {services.map((service) => (
+                <div
+                  key={service.id ?? service.title}
+                  className="rounded-2xl border border-beige/10 bg-beige/5 p-5"
+                >
+                  <p className="font-display text-xl text-beige">{service.title}</p>
+                  <p className="mt-2 text-sm text-beige/70 leading-relaxed">
+                    {service.desc}
+                  </p>
+                  <p className="mt-3 text-sm text-gold/80">{service.price ?? "-"}</p>
+                  <p className="mt-2 truncate text-xs text-beige/45">
+                    {service.image_url ?? "-"}
+                  </p>
+                  <div className="mt-4 flex flex-wrap gap-2">
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      className="px-4 py-2"
+                      onClick={() => openEditService(service)}
+                    >
+                      Edit
+                    </Button>
+                    <button
+                      type="button"
+                      onClick={() => deleteService(service.id)}
+                      disabled={busyServiceId === service.id}
+                      className="inline-flex items-center justify-center rounded-full border border-red-400/20 bg-red-500/10 px-4 py-2 text-xs font-medium text-red-200 transition hover:border-red-300/40 hover:bg-red-500/15 disabled:cursor-not-allowed disabled:opacity-50"
+                    >
+                      {busyServiceId === service.id ? "Deleting..." : "Delete"}
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </Card>
         </Reveal>
 
         <Reveal className="mt-10">

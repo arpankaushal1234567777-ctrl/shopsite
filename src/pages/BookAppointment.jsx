@@ -3,7 +3,7 @@ import Button from "../components/Button.jsx";
 import Reveal from "../components/Reveal.jsx";
 import SectionHeading from "../components/SectionHeading.jsx";
 import Card from "../components/Card.jsx";
-import { services } from "../data/content.js";
+import { services as fallbackServices } from "../data/content.js";
 import { supabase } from "../lib/supabase.js";
 
 const timeSlots = [
@@ -50,7 +50,8 @@ function normalizeTimeSlot(value) {
 }
 
 export default function BookAppointment() {
-  const serviceOptions = useMemo(() => services.map((s) => s.title), []);
+  const [services, setServices] = useState(fallbackServices);
+  const serviceOptions = useMemo(() => services.map((s) => s.title), [services]);
   const defaultService = serviceOptions[0] ?? "Haircut";
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isLoadingSlots, setIsLoadingSlots] = useState(false);
@@ -61,6 +62,48 @@ export default function BookAppointment() {
   function update(key, value) {
     setForm((prev) => ({ ...prev, [key]: value }));
   }
+
+  useEffect(() => {
+    let isActive = true;
+
+    async function loadServices() {
+      const { data, error } = await supabase
+        .from("services")
+        .select("id, name, description")
+        .order("created_at", { ascending: true });
+
+      if (!isActive || error) {
+        if (error) {
+          console.error("Failed to fetch booking services:", error);
+        }
+        return;
+      }
+
+      const nextServices =
+        (data ?? []).length > 0
+          ? data.map((service) => ({
+              id: service.id,
+              title: service.name,
+              desc: service.description,
+            }))
+          : fallbackServices;
+
+      setServices(nextServices);
+      setForm((prev) => ({
+        ...prev,
+        service:
+          prev.service && nextServices.some((service) => service.title === prev.service)
+            ? prev.service
+            : nextServices[0]?.title ?? "Haircut",
+      }));
+    }
+
+    loadServices();
+
+    return () => {
+      isActive = false;
+    };
+  }, []);
 
   useEffect(() => {
     let isActive = true;

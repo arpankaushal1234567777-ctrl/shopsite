@@ -1,11 +1,49 @@
+import { useEffect, useState } from "react";
 import Button from "../components/Button.jsx";
 import Reveal from "../components/Reveal.jsx";
 import SectionHeading from "../components/SectionHeading.jsx";
 import ServiceCard from "../components/ServiceCard.jsx";
 import Card from "../components/Card.jsx";
-import { extras, services } from "../data/content.js";
+import { supabase } from "../lib/supabase.js";
+import { extras, services as fallbackServices } from "../data/content.js";
 
 export default function Services() {
+  const [services, setServices] = useState(fallbackServices);
+
+  useEffect(() => {
+    let isActive = true;
+
+    async function loadServices() {
+      const { data, error } = await supabase
+        .from("services")
+        .select("id, name, description")
+        .order("created_at", { ascending: true });
+
+      if (!isActive || error) {
+        if (error) {
+          console.error("Failed to fetch services:", error);
+        }
+        return;
+      }
+
+      setServices(
+        (data ?? []).length > 0
+          ? data.map((service) => ({
+              id: service.id,
+              title: service.name,
+              desc: service.description,
+            }))
+          : fallbackServices,
+      );
+    }
+
+    loadServices();
+
+    return () => {
+      isActive = false;
+    };
+  }, []);
+
   return (
     <div className="py-12 sm:py-16">
       <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
@@ -54,4 +92,3 @@ export default function Services() {
     </div>
   );
 }
-

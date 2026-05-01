@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import Button from "../components/Button.jsx";
 import Reveal from "../components/Reveal.jsx";
@@ -5,9 +6,46 @@ import SectionHeading from "../components/SectionHeading.jsx";
 import ServiceCard from "../components/ServiceCard.jsx";
 import PricingCard from "../components/PricingCard.jsx";
 import TestimonialCard from "../components/TestimonialCard.jsx";
-import { galleryImages, pricing, services, testimonials } from "../data/content.js";
+import { supabase } from "../lib/supabase.js";
+import { galleryImages, pricing, services as fallbackServices, testimonials } from "../data/content.js";
 
 export default function Home() {
+  const [services, setServices] = useState(fallbackServices);
+
+  useEffect(() => {
+    let isActive = true;
+
+    async function loadServices() {
+      const { data, error } = await supabase
+        .from("services")
+        .select("id, name, description")
+        .order("created_at", { ascending: true });
+
+      if (!isActive || error) {
+        if (error) {
+          console.error("Failed to fetch homepage services:", error);
+        }
+        return;
+      }
+
+      setServices(
+        (data ?? []).length > 0
+          ? data.map((service) => ({
+              id: service.id,
+              title: service.name,
+              desc: service.description,
+            }))
+          : fallbackServices,
+      );
+    }
+
+    loadServices();
+
+    return () => {
+      isActive = false;
+    };
+  }, []);
+
   return (
     <div>
       <section className="bg-hero">
