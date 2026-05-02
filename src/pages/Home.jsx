@@ -11,6 +11,8 @@ import { galleryImages, pricing, services as fallbackServices, testimonials } fr
 
 export default function Home() {
   const [services, setServices] = useState(fallbackServices);
+  const [activeOffer, setActiveOffer] = useState(null);
+  const [showOfferPopup, setShowOfferPopup] = useState(false);
 
   useEffect(() => {
     let isActive = true;
@@ -46,8 +48,109 @@ export default function Home() {
     };
   }, []);
 
+  useEffect(() => {
+    let isActive = true;
+
+    async function loadOffers() {
+      const { data, error } = await supabase
+        .from("offers")
+        .select("id, title, description, type, value, min_bill, expiry_date")
+        .order("expiry_date", { ascending: true });
+
+      if (!isActive) {
+        return;
+      }
+
+      if (error) {
+        console.error("Failed to fetch homepage offers:", error);
+        return;
+      }
+
+      const now = new Date();
+      const activeOffers = (data ?? []).filter((offer) => {
+        const expiry = offer.expiry_date ? new Date(offer.expiry_date) : null;
+        return expiry && expiry > now;
+      });
+
+      const nextOffer = activeOffers[0] ?? null;
+      const dismissedId = window.localStorage.getItem("activeOfferDismissedId");
+
+      if (nextOffer && dismissedId !== nextOffer.id) {
+        setActiveOffer(nextOffer);
+        setShowOfferPopup(true);
+      }
+    }
+
+    loadOffers();
+
+    return () => {
+      isActive = false;
+    };
+  }, []);
+
+  function closeOfferPopup() {
+    if (activeOffer?.id) {
+      window.localStorage.setItem("activeOfferDismissedId", activeOffer.id);
+    }
+    setShowOfferPopup(false);
+  }
+
+  function formatOfferExpiry(value) {
+    if (!value) {
+      return "-";
+    }
+
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) {
+      return value;
+    }
+
+    return new Intl.DateTimeFormat("en-IN", {
+      day: "numeric",
+      month: "short",
+      year: "numeric",
+    }).format(date);
+  }
+
   return (
     <div>
+      {showOfferPopup && activeOffer ? (
+        <div className="fixed inset-0 z-50 flex items-center justify-center px-4 py-6 bg-ink/80 backdrop-blur-sm">
+          <div className="w-full max-w-xl rounded-[2rem] border border-beige/15 bg-ink/95 p-6 shadow-2xl shadow-black/30 sm:p-8">
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <p className="text-xs uppercase tracking-[0.3em] text-gold/80">Limited offer</p>
+                <h2 className="mt-3 text-3xl font-display text-beige">{activeOffer.title}</h2>
+              </div>
+              <button
+                type="button"
+                onClick={closeOfferPopup}
+                className="rounded-full border border-beige/15 bg-beige/5 px-4 py-2 text-sm text-beige/80 transition hover:bg-beige/10"
+              >
+                Close
+              </button>
+            </div>
+
+            <p className="mt-5 text-beige/70 leading-relaxed">{activeOffer.description}</p>
+            <div className="mt-6 grid gap-3 sm:grid-cols-2">
+              <div className="rounded-3xl border border-beige/10 bg-beige/5 p-4">
+                <p className="text-xs uppercase tracking-[0.25em] text-beige/60">Offer</p>
+                <p className="mt-2 text-xl text-gold">{activeOffer.value}</p>
+              </div>
+              <div className="rounded-3xl border border-beige/10 bg-beige/5 p-4">
+                <p className="text-xs uppercase tracking-[0.25em] text-beige/60">Expires</p>
+                <p className="mt-2 text-xl text-beige">{formatOfferExpiry(activeOffer.expiry_date)}</p>
+              </div>
+            </div>
+            {activeOffer.min_bill ? (
+              <p className="mt-6 text-sm text-beige/60">
+                Minimum bill: ₹{activeOffer.min_bill}
+              </p>
+            ) : null}
+          </div>
+        </div>
+      ) : null}
+
       <section className="bg-hero">
         <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8 py-20 sm:py-28">
           <div className="grid gap-10 lg:grid-cols-12 lg:items-center">

@@ -74,12 +74,23 @@ export default function Admin() {
   const [busyAppointmentId, setBusyAppointmentId] = useState("");
   const [searchValue, setSearchValue] = useState("");
   const [busyServiceId, setBusyServiceId] = useState("");
+  const [busyOfferId, setBusyOfferId] = useState("");
+  const [offers, setOffers] = useState([]);
+  const [offersLoading, setOffersLoading] = useState(true);
   const [editingService, setEditingService] = useState(null);
   const [serviceForm, setServiceForm] = useState({
     name: "",
     description: "",
     price: "",
     image_url: "",
+  });
+  const [offerForm, setOfferForm] = useState({
+    title: "",
+    description: "",
+    type: "discount",
+    value: "",
+    min_bill: "",
+    expiry_date: "",
   });
   const [editingBooking, setEditingBooking] = useState(null);
   const [editForm, setEditForm] = useState({
@@ -146,8 +157,32 @@ export default function Admin() {
       setIsLoading(false);
     }
 
+    async function loadOffers() {
+      setOffersLoading(true);
+
+      const { data, error } = await supabase
+        .from("offers")
+        .select("id, title, description, type, value, min_bill, expiry_date, created_at")
+        .order("created_at", { ascending: false });
+
+      if (!isActive) {
+        return;
+      }
+
+      if (error) {
+        console.error("Failed to fetch offers:", error);
+        setOffers([]);
+        setOffersLoading(false);
+        return;
+      }
+
+      setOffers(data ?? []);
+      setOffersLoading(false);
+    }
+
     loadServices();
     loadAppointments();
+    loadOffers();
 
     return () => {
       isActive = false;
@@ -404,6 +439,34 @@ export default function Admin() {
     setEditingService(null);
   }
 
+  function resetOfferForm() {
+    setOfferForm({
+      title: "",
+      description: "",
+      type: "discount",
+      value: "",
+      min_bill: "",
+      expiry_date: "",
+    });
+  }
+
+  function formatOfferDate(value) {
+    if (!value) {
+      return "-";
+    }
+
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) {
+      return value;
+    }
+
+    return new Intl.DateTimeFormat("en-IN", {
+      day: "numeric",
+      month: "short",
+      year: "numeric",
+    }).format(date);
+  }
+
   async function saveService(e) {
     e.preventDefault();
 
@@ -485,6 +548,67 @@ export default function Admin() {
 
     resetServiceForm();
     setBusyServiceId("");
+  }
+
+  async function saveOffer(e) {
+    e.preventDefault();
+
+    setBusyOfferId("new");
+    const { data, error } = await supabase
+      .from("offers")
+      .insert([
+        {
+          title: offerForm.title,
+          description: offerForm.description,
+          type: offerForm.type,
+          value: offerForm.value,
+          min_bill: offerForm.min_bill ? parseFloat(offerForm.min_bill) : null,
+          expiry_date: offerForm.expiry_date ? new Date(offerForm.expiry_date).toISOString() : null,
+        },
+      ])
+      .select("id, title, description, type, value, min_bill, expiry_date, created_at");
+
+    if (error) {
+      console.error("Failed to add offer:", error);
+      alert("Something went wrong");
+      setBusyOfferId("");
+      return;
+    }
+
+    const createdOffer = data?.[0];
+    if (createdOffer) {
+      setOffers((prev) => [createdOffer, ...prev]);
+      setOfferForm({
+        title: "",
+        description: "",
+        type: "discount",
+        value: "",
+        min_bill: "",
+        expiry_date: "",
+      });
+    }
+
+    setBusyOfferId("");
+  }
+
+  async function deleteOffer(id) {
+    const confirmed = window.confirm("Delete this offer?");
+    if (!confirmed) {
+      return;
+    }
+
+    setBusyOfferId(id);
+    const { error } = await supabase.from("offers").delete().eq("id", id);
+
+    if (error) {
+      console.error("Failed to delete offer:", error);
+      alert("Something went wrong");
+      setBusyOfferId("");
+      return;
+    }
+
+    setOffers((prev) => prev.filter((offer) => offer.id !== id));
+    setBusyOfferId("");
   }
 
   function openEditService(service) {
@@ -711,6 +835,142 @@ export default function Admin() {
                   </div>
                 </div>
               ))}
+            </div>
+          </Card>
+        </Reveal>
+
+        <Reveal className="mt-10">
+          <Card className="p-6">
+            <div className="flex flex-wrap items-end justify-between gap-4">
+              <div>
+                <p className="font-display text-2xl text-beige">Offers</p>
+                <p className="mt-1 text-sm text-beige/65">
+                  Create offers or discounts and set expiry dates for the homepage popup.
+                </p>
+              </div>
+            </div>
+
+            <form className="mt-6 grid gap-4 sm:grid-cols-2" onSubmit={saveOffer}>
+              <label className="grid gap-2 sm:col-span-2">
+                <span className="text-sm text-beige/70">Title</span>
+                <input
+                  value={offerForm.title}
+                  onChange={(e) =>
+                    setOfferForm((prev) => ({ ...prev, title: e.target.value }))
+                  }
+                  className="h-12 rounded-xl bg-ink border border-beige/15 px-4 text-beige placeholder:text-beige/40 focus:outline-none focus:ring-2 focus:ring-gold/50"
+                  required
+                />
+              </label>
+
+              <label className="grid gap-2 sm:col-span-2">
+                <span className="text-sm text-beige/70">Description</span>
+                <textarea
+                  value={offerForm.description}
+                  onChange={(e) =>
+                    setOfferForm((prev) => ({ ...prev, description: e.target.value }))
+                  }
+                  className="min-h-28 rounded-xl bg-ink border border-beige/15 px-4 py-3 text-beige placeholder:text-beige/40 focus:outline-none focus:ring-2 focus:ring-gold/50"
+                  required
+                />
+              </label>
+
+              <label className="grid gap-2">
+                <span className="text-sm text-beige/70">Type</span>
+                <select
+                  value={offerForm.type}
+                  onChange={(e) =>
+                    setOfferForm((prev) => ({ ...prev, type: e.target.value }))
+                  }
+                  className="h-12 rounded-xl bg-ink border border-beige/15 px-4 text-beige focus:outline-none focus:ring-2 focus:ring-gold/50"
+                >
+                  <option value="discount">Discount</option>
+                  <option value="free">Free</option>
+                </select>
+              </label>
+
+              <label className="grid gap-2">
+                <span className="text-sm text-beige/70">Value</span>
+                <input
+                  value={offerForm.value}
+                  onChange={(e) =>
+                    setOfferForm((prev) => ({ ...prev, value: e.target.value }))
+                  }
+                  className="h-12 rounded-xl bg-ink border border-beige/15 px-4 text-beige placeholder:text-beige/40 focus:outline-none focus:ring-2 focus:ring-gold/50"
+                  placeholder="20% or Free Facial"
+                  required
+                />
+              </label>
+
+              <label className="grid gap-2">
+                <span className="text-sm text-beige/70">Min Bill</span>
+                <input
+                  value={offerForm.min_bill}
+                  onChange={(e) =>
+                    setOfferForm((prev) => ({ ...prev, min_bill: e.target.value }))
+                  }
+                  className="h-12 rounded-xl bg-ink border border-beige/15 px-4 text-beige placeholder:text-beige/40 focus:outline-none focus:ring-2 focus:ring-gold/50"
+                  placeholder="Optional"
+                />
+              </label>
+
+              <label className="grid gap-2">
+                <span className="text-sm text-beige/70">Expiry Date</span>
+                <input
+                  type="date"
+                  value={offerForm.expiry_date}
+                  onChange={(e) =>
+                    setOfferForm((prev) => ({ ...prev, expiry_date: e.target.value }))
+                  }
+                  className="h-12 rounded-xl bg-ink border border-beige/15 px-4 text-beige focus:outline-none focus:ring-2 focus:ring-gold/50"
+                  required
+                />
+              </label>
+
+              <div className="sm:col-span-2">
+                <Button type="submit" disabled={busyOfferId === "new"}>
+                  {busyOfferId === "new" ? "Adding Offer..." : "Add Offer"}
+                </Button>
+              </div>
+            </form>
+
+            <div className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+              {offersLoading ? (
+                <p className="text-sm text-beige/65">Loading offers...</p>
+              ) : offers.length === 0 ? (
+                <p className="text-sm text-beige/65">No offers yet. Add one above.</p>
+              ) : (
+                offers.map((offer) => (
+                  <div
+                    key={offer.id}
+                    className="rounded-2xl border border-beige/10 bg-beige/5 p-5"
+                  >
+                    <p className="font-display text-xl text-beige">{offer.title}</p>
+                    <p className="mt-2 text-sm text-beige/70 leading-relaxed">
+                      {offer.description}
+                    </p>
+                    <p className="mt-3 text-sm text-gold/80">
+                      {offer.type === "discount" ? "Discount:" : "Offer:"} {offer.value}
+                    </p>
+                    <p className="mt-2 text-xs text-beige/50">
+                      Min bill: {offer.min_bill ?? "None"}
+                    </p>
+                    <p className="mt-1 text-xs text-beige/50">
+                      Expires: {formatOfferDate(offer.expiry_date)}
+                    </p>
+                    <div className="mt-4 flex gap-2">
+                      <button
+                        type="button"
+                        onClick={() => deleteOffer(offer.id)}
+                        disabled={busyOfferId === offer.id}
+                        className="inline-flex items-center justify-center rounded-full border border-red-400/20 bg-red-500/10 px-4 py-2 text-xs font-medium text-red-200 transition hover:border-red-300/40 hover:bg-red-500/15 disabled:cursor-not-allowed disabled:opacity-50"
+                      >
+                        {busyOfferId === offer.id ? "Deleting..." : "Delete"}
+                      </button>
+                    </div>
+                  </div>
+                ))
+              )}
             </div>
           </Card>
         </Reveal>
