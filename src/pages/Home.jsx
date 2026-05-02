@@ -73,9 +73,10 @@ export default function Home() {
       });
 
       const nextOffer = activeOffers[0] ?? null;
-      const dismissedId = window.localStorage.getItem("activeOfferDismissedId");
+      const nextOfferKey = nextOffer ? `${nextOffer.id}:${nextOffer.expiry_date}` : null;
+      const dismissedKey = window.localStorage.getItem("activeOfferDismissedId");
 
-      if (nextOffer && dismissedId !== nextOffer.id) {
+      if (nextOffer && dismissedKey !== nextOfferKey) {
         setActiveOffer(nextOffer);
         setShowOfferPopup(true);
       }
@@ -90,9 +91,18 @@ export default function Home() {
 
   function closeOfferPopup() {
     if (activeOffer?.id) {
-      window.localStorage.setItem("activeOfferDismissedId", activeOffer.id);
+      window.localStorage.setItem(
+        "activeOfferDismissedId",
+        `${activeOffer.id}:${activeOffer.expiry_date}`,
+      );
     }
     setShowOfferPopup(false);
+  }
+
+  function handlePopupOverlayClick(event) {
+    if (event.target === event.currentTarget) {
+      closeOfferPopup();
+    }
   }
 
   function formatOfferExpiry(value) {
@@ -115,36 +125,50 @@ export default function Home() {
   return (
     <div>
       {showOfferPopup && activeOffer ? (
-        <div className="fixed inset-0 z-50 flex items-center justify-center px-4 py-6 bg-ink/80 backdrop-blur-sm">
-          <div className="w-full max-w-xl rounded-[2rem] border border-beige/15 bg-ink/95 p-6 shadow-2xl shadow-black/30 sm:p-8">
+        <div
+          onClick={handlePopupOverlayClick}
+          className="fixed inset-0 z-[999] flex items-center justify-center px-4 py-6 bg-black/75 backdrop-blur-sm"
+        >
+          <div className="w-full max-w-[min(92vw,40rem)] rounded-2xl border border-beige/15 bg-[#111418cc] p-6 shadow-2xl shadow-black/40 backdrop-blur-xl transition-all duration-300 ease-out sm:p-8 animate-popup-fade-scale max-h-[calc(100vh-4rem)] overflow-y-auto">
             <div className="flex items-start justify-between gap-4">
-              <div>
-                <p className="text-xs uppercase tracking-[0.3em] text-gold/80">Limited offer</p>
-                <h2 className="mt-3 text-3xl font-display text-beige">{activeOffer.title}</h2>
+              <div className="max-w-[75%]">
+                <p className="text-xs uppercase tracking-[0.3em] text-gold/80">Exclusive offer</p>
+                <h2 className="mt-3 text-3xl font-display font-semibold text-beige sm:text-4xl">
+                  {activeOffer.title}
+                </h2>
               </div>
               <button
                 type="button"
                 onClick={closeOfferPopup}
-                className="rounded-full border border-beige/15 bg-beige/5 px-4 py-2 text-sm text-beige/80 transition hover:bg-beige/10"
+                className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-beige/15 bg-beige/5 text-beige/80 transition hover:bg-beige/10 hover:text-beige"
+                aria-label="Close offer popup"
               >
-                Close
+                ✕
               </button>
             </div>
 
-            <p className="mt-5 text-beige/70 leading-relaxed">{activeOffer.description}</p>
+            <p className="mt-5 text-beige/70 leading-relaxed text-base sm:text-lg">
+              {activeOffer.description}
+            </p>
+
             <div className="mt-6 grid gap-3 sm:grid-cols-2">
-              <div className="rounded-3xl border border-beige/10 bg-beige/5 p-4">
-                <p className="text-xs uppercase tracking-[0.25em] text-beige/60">Offer</p>
-                <p className="mt-2 text-xl text-gold">{activeOffer.value}</p>
+              <div className="rounded-3xl border border-beige/10 bg-beige/5 p-5">
+                <p className="text-xs uppercase tracking-[0.25em] text-beige/60">Offer value</p>
+                <p className="mt-2 text-2xl font-semibold text-gold sm:text-3xl">
+                  {activeOffer.value}
+                </p>
               </div>
-              <div className="rounded-3xl border border-beige/10 bg-beige/5 p-4">
+              <div className="rounded-3xl border border-beige/10 bg-beige/5 p-5">
                 <p className="text-xs uppercase tracking-[0.25em] text-beige/60">Expires</p>
-                <p className="mt-2 text-xl text-beige">{formatOfferExpiry(activeOffer.expiry_date)}</p>
+                <p className="mt-2 text-lg text-beige">
+                  {formatOfferExpiry(activeOffer.expiry_date)}
+                </p>
               </div>
             </div>
+
             {activeOffer.min_bill ? (
               <p className="mt-6 text-sm text-beige/60">
-                Minimum bill: ₹{activeOffer.min_bill}
+                Minimum spend: ₹{activeOffer.min_bill}
               </p>
             ) : null}
           </div>

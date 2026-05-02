@@ -17,6 +17,21 @@ html {
   background: rgba(212, 175, 55, 0.25);
 }
 
+@keyframes popupFadeScale {
+  from {
+    opacity: 0;
+    transform: translateY(-10px) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.animate-popup-fade-scale {
+  animation: popupFadeScale 260ms ease-out;
+}
+
 .bg-hero {
   background:
     radial-gradient(60rem 40rem at 10% 10%, rgba(212, 175, 55, 0.12), transparent 55%),
