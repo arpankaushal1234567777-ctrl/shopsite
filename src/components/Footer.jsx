@@ -63,10 +63,12 @@ export default function Footer() {
             <div className="mt-4 flex flex-wrap gap-3">
               <a
                 className="px-4 py-2 rounded-full border border-beige/15 bg-beige/5 text-beige/80 hover:text-beige hover:border-gold/25 transition"
-                href="#"
-              >
-                Instagram
-              </a>
+                  href="https://www.instagram.com/blushandbeautyagra/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  Instagram
+                </a>
               <a
                 className="px-4 py-2 rounded-full border border-beige/15 bg-beige/5 text-beige/80 hover:text-beige hover:border-gold/25 transition"
                 href="#"
