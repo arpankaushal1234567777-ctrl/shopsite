@@ -36,9 +36,7 @@ export default function Navbar() {
         <div className="mt-4 glass rounded-2xl">
           <div className="flex items-center justify-between px-4 py-3 sm:px-6">
             <Link to="/" className="flex items-center gap-3">
-              <div className="h-9 w-9 rounded-xl bg-gold/10 border border-gold/30 grid place-items-center">
-                <span className="font-display text-gold text-lg">B</span>
-              </div>
+              <img src="/logo.png" className="h-9 w-9 rounded-xl object-contain" alt="Logo" />
               <div className="leading-tight">
                 <p className="font-display text-beige text-base">
                   Blush and Beauty
