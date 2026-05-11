@@ -23,3 +23,7 @@ Modern, responsive luxury salon website built with React (Vite) + Tailwind CSS.
 - Prices are placeholders (`₹ —`) so you can update them later.
 - Booking form is frontend-only and logs to the console.
 
+
+## Deployed Link
+
+- https://blushandbeauty.vercel.app
