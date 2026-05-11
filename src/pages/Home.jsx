@@ -183,16 +183,16 @@ export default function Home() {
                 <p className="text-xs uppercase tracking-[0.3em] text-gold/80">
                   Luxury salon experience
                 </p>
-                <h1 className="mt-4 font-display text-4xl sm:text-6xl leading-[1.05]">
+                <h1 className="mt-3 xs:mt-4 font-display text-3xl xs:text-4xl sm:text-5xl lg:text-6xl leading-[1.05]">
                   Blush and Beauty
                 </h1>
-                <p className="mt-5 text-beige/75 text-lg leading-relaxed max-w-xl">
+                <p className="mt-4 xs:mt-5 text-sm xs:text-base sm:text-lg text-beige/75 leading-relaxed max-w-xl">
                   Luxury care for your beauty and confidence. Minimal, premium,
                   and designed for comfort.
                 </p>
               </Reveal>
 
-              <Reveal delayMs={120} className="mt-8 flex flex-wrap gap-3">
+              <Reveal delayMs={120} className="mt-6 xs:mt-8 flex flex-wrap gap-2 xs:gap-3">
                 <Button as="link" to="/book">
                   Book Appointment
                 </Button>
@@ -205,24 +205,24 @@ export default function Home() {
                 >
                   Book via WhatsApp
                 </Button>
-                <Button as="link" to="/services" variant="ghost">
+                <Button as="link" to="/services" variant="ghost" className="hidden xs:inline-flex">
                   View Services
                 </Button>
               </Reveal>
 
-              <Reveal delayMs={220} className="mt-10">
-                <div className="grid grid-cols-3 gap-3 max-w-md">
+              <Reveal delayMs={220} className="mt-8 xs:mt-10">
+                <div className="grid grid-cols-2 xs:grid-cols-3 gap-2 xs:gap-3 max-w-md">
                   {[
-                    { k: "10+", v: "Signature Services" },
-                    { k: "Premium", v: "Products & Care" },
-                    { k: "Calm", v: "Luxury Ambience" },
+                    { k: "10+", v: "Services" },
+                    { k: "Premium", v: "Products" },
+                    { k: "Calm", v: "Ambience" },
                   ].map((s) => (
                     <div
                       key={s.k}
-                      className="rounded-2xl border border-beige/10 bg-beige/5 px-4 py-4"
+                      className="rounded-xl xs:rounded-2xl border border-beige/10 bg-beige/5 px-3 xs:px-4 py-3 xs:py-4"
                     >
-                      <p className="font-display text-2xl text-gold">{s.k}</p>
-                      <p className="mt-1 text-xs text-beige/65">{s.v}</p>
+                      <p className="font-display text-lg xs:text-2xl text-gold">{s.k}</p>
+                      <p className="mt-0.5 xs:mt-1 text-xs text-beige/65">{s.v}</p>
                     </div>
                   ))}
                 </div>
@@ -235,10 +235,10 @@ export default function Home() {
                   <p className="text-xs uppercase tracking-[0.25em] text-gold/80">
                     Today’s highlight
                   </p>
-                  <p className="mt-3 font-display text-2xl">
+                  <p className="mt-2 xs:mt-3 font-display text-xl xs:text-2xl">
                     Glow Facial + Head Massage
                   </p>
-                  <p className="mt-3 text-beige/70 leading-relaxed">
+                  <p className="mt-2 xs:mt-3 text-sm xs:text-base text-beige/70 leading-relaxed">
                     A premium combo designed to refresh your skin and calm your
                     senses.
                   </p>

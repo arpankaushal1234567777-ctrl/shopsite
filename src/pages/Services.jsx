@@ -47,7 +47,7 @@ export default function Services() {
   return (
     <div className="py-12 sm:py-16">
       <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
-        <div className="flex items-end justify-between gap-6 flex-wrap">
+        <div className="flex items-end justify-between gap-4 xs:gap-6 flex-wrap">
           <SectionHeading
             eyebrow="Services"
             title="Everything you need, beautifully done"

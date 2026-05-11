@@ -1,7 +1,7 @@
 import { Link } from "react-router-dom";
 
 const base =
-  "inline-flex items-center justify-center gap-2 rounded-full px-5 py-3 text-sm font-medium transition focus:outline-none focus-visible:ring-2 focus-visible:ring-gold/60 focus-visible:ring-offset-2 focus-visible:ring-offset-ink";
+  "inline-flex items-center justify-center gap-2 rounded-full px-4 xs:px-5 py-2.5 xs:py-3 text-xs xs:text-sm font-medium transition focus:outline-none focus-visible:ring-2 focus-visible:ring-gold/60 focus-visible:ring-offset-2 focus-visible:ring-offset-ink min-h-11";
 
 export default function Button({
   as = "button",

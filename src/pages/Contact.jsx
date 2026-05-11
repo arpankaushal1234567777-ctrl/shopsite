@@ -5,9 +5,9 @@ import Card from "../components/Card.jsx";
 
 export default function Contact() {
   return (
-    <div className="py-12 sm:py-16">
+    <div className="py-8 xs:py-10 sm:py-12 md:py-16">
       <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
-        <div className="flex items-end justify-between gap-6 flex-wrap">
+        <div className="flex items-end justify-between gap-3 xs:gap-6 flex-wrap">
           <SectionHeading
             eyebrow="Contact"
             title="Let’s get you booked"
@@ -29,16 +29,16 @@ export default function Contact() {
           </div>
         </div>
 
-        <div className="mt-10 grid gap-4 lg:grid-cols-2">
+        <div className="mt-8 xs:mt-10 grid gap-4 xs:gap-6 lg:grid-cols-2">
           <Reveal>
-            <Card className="p-8">
-              <p className="font-display text-2xl">Contact details</p>
-              <div className="mt-5 grid gap-5">
-                <div className="grid gap-2">
-                  <p className="text-sm uppercase tracking-[0.22em] text-gold/80">
+            <Card className="p-4 xs:p-6 sm:p-8">
+              <p className="font-display text-lg xs:text-xl sm:text-2xl">Contact details</p>
+              <div className="mt-3 xs:mt-4 sm:mt-5 grid gap-4 xs:gap-5">
+                <div className="grid gap-1.5 xs:gap-2">
+                  <p className="text-xs uppercase tracking-[0.22em] text-gold/80">
                     Phone
                   </p>
-                  <div className="grid gap-2 text-beige/80">
+                  <div className="grid gap-1.5 xs:gap-2 text-xs xs:text-sm text-beige/80">
                     <a className="hover:text-beige" href="tel:+917505519340">
                       +91 7505519340
                     </a>
@@ -46,11 +46,11 @@ export default function Contact() {
                       +91 8439015769
                     </a>
                   </div>
-                  <div className="mt-2 flex flex-wrap gap-3">
+                  <div className="mt-2 xs:mt-3 flex flex-wrap gap-2 xs:gap-3">
                     <Button
                       as="a"
                       href="tel:+917505519340"
-                      className="px-4 py-2"
+                      className="px-3 xs:px-4 py-1.5 xs:py-2 text-xs xs:text-sm"
                     >
                       Call Now
                     </Button>
@@ -58,36 +58,36 @@ export default function Contact() {
                       as="a"
                       href="tel:+918439015769"
                       variant="ghost"
-                      className="px-4 py-2"
+                      className="px-3 xs:px-4 py-1.5 xs:py-2 text-xs xs:text-sm"
                     >
                       Call Alternate
                     </Button>
                   </div>
                 </div>
 
-                <div className="grid gap-2">
-                  <p className="text-sm uppercase tracking-[0.22em] text-gold/80">
+                <div className="grid gap-1.5 xs:gap-2">
+                  <p className="text-xs uppercase tracking-[0.22em] text-gold/80">
                     Address
                   </p>
-                  <div className="rounded-2xl border border-beige/10 bg-beige/5 p-5 text-beige/75 leading-relaxed">
+                  <div className="rounded-lg xs:rounded-2xl border border-beige/10 bg-beige/5 p-3 xs:p-4 sm:p-5 text-xs xs:text-sm text-beige/75 leading-relaxed">
                     <p>Shop No. 4, Upper Ground Floor,</p>
                     <p>Dayal Plaza, Near Dayal Apartment,</p>
                     <p>100ft Road, Dayal Bagh, Agra</p>
                   </div>
                 </div>
 
-                <div className="grid gap-2">
-                  <p className="text-sm uppercase tracking-[0.22em] text-gold/80">
+                <div className="grid gap-1.5 xs:gap-2">
+                  <p className="text-xs uppercase tracking-[0.22em] text-gold/80">
                     Timing
                   </p>
-                  <p className="text-beige/75">
+                  <p className="text-xs xs:text-sm text-beige/75">
                     10:00 AM – 8:00 PM (All Days)
                   </p>
                 </div>
               </div>
-              <div className="mt-8 flex flex-wrap gap-3">
+              <div className="mt-6 xs:mt-8 flex flex-wrap gap-2 xs:gap-3">
                 <a
-                  className="inline-flex items-center justify-center gap-2 rounded-full bg-gold px-5 py-3 text-sm font-medium text-ink transition hover:brightness-110 active:brightness-95 shadow-glow"
+                  className="inline-flex items-center justify-center gap-2 rounded-full bg-gold px-4 xs:px-5 py-2.5 xs:py-3 text-xs xs:text-sm font-medium text-ink transition hover:brightness-110 active:brightness-95 shadow-glow"
                   href="https://wa.me/917505519340?text=Hi, I want to book an appointment at Blush and Beauty"
                   target="_blank"
                   rel="noreferrer"
@@ -95,7 +95,7 @@ export default function Contact() {
                   WhatsApp
                 </a>
                 <a
-                  className="px-4 py-2 rounded-full border border-beige/15 bg-beige/5 text-beige/80 hover:text-beige hover:border-gold/25 transition"
+                  className="px-3 xs:px-4 py-2.5 xs:py-3 text-xs xs:text-sm rounded-full border border-beige/15 bg-beige/5 text-beige/80 hover:text-beige hover:border-gold/25 transition"
                   href="#"
                 >
                   Instagram
@@ -105,47 +105,47 @@ export default function Contact() {
           </Reveal>
 
           <Reveal delayMs={120}>
-            <Card className="p-8">
-              <p className="font-display text-2xl">Send a message</p>
+            <Card className="p-4 xs:p-6 sm:p-8">
+              <p className="font-display text-lg xs:text-xl sm:text-2xl">Send a message</p>
               <form
-                className="mt-6 grid gap-4"
+                className="mt-4 xs:mt-6 grid gap-3 xs:gap-4"
                 onSubmit={(e) => {
                   e.preventDefault();
                   alert("Thanks! We will reach out shortly. (UI only)");
                 }}
               >
-                <label className="grid gap-2">
-                  <span className="text-sm text-beige/70">Name</span>
+                <label className="grid gap-1.5 xs:gap-2">
+                  <span className="text-xs xs:text-sm text-beige/70">Name</span>
                   <input
-                    className="h-12 rounded-xl bg-ink border border-beige/15 px-4 text-beige placeholder:text-beige/40 focus:outline-none focus:ring-2 focus:ring-gold/50"
+                    className="h-11 xs:h-12 rounded-lg xs:rounded-xl bg-ink border border-beige/15 px-3 xs:px-4 text-beige placeholder:text-beige/40 focus:outline-none focus:ring-2 focus:ring-gold/50 text-sm"
                     placeholder="Your name"
                     required
                   />
                 </label>
-                <label className="grid gap-2">
-                  <span className="text-sm text-beige/70">Phone</span>
+                <label className="grid gap-1.5 xs:gap-2">
+                  <span className="text-xs xs:text-sm text-beige/70">Phone</span>
                   <input
-                    className="h-12 rounded-xl bg-ink border border-beige/15 px-4 text-beige placeholder:text-beige/40 focus:outline-none focus:ring-2 focus:ring-gold/50"
+                    className="h-11 xs:h-12 rounded-lg xs:rounded-xl bg-ink border border-beige/15 px-3 xs:px-4 text-beige placeholder:text-beige/40 focus:outline-none focus:ring-2 focus:ring-gold/50 text-sm"
                     placeholder="+91..."
                     required
                   />
                 </label>
-                <label className="grid gap-2">
-                  <span className="text-sm text-beige/70">Message</span>
+                <label className="grid gap-1.5 xs:gap-2">
+                  <span className="text-xs xs:text-sm text-beige/70">Message</span>
                   <textarea
-                    className="min-h-28 rounded-xl bg-ink border border-beige/15 px-4 py-3 text-beige placeholder:text-beige/40 focus:outline-none focus:ring-2 focus:ring-gold/50"
+                    className="min-h-24 xs:min-h-28 rounded-lg xs:rounded-xl bg-ink border border-beige/15 px-3 xs:px-4 py-2.5 xs:py-3 text-beige placeholder:text-beige/40 focus:outline-none focus:ring-2 focus:ring-gold/50 text-sm"
                     placeholder="How can we help?"
                     required
                   />
                 </label>
-                <Button type="submit">Send</Button>
+                <Button type="submit" className="text-xs xs:text-sm">Send</Button>
               </form>
             </Card>
           </Reveal>
         </div>
 
-        <div className="mt-16">
-          <div className="flex items-end justify-between gap-6 flex-wrap">
+        <div className="mt-12 xs:mt-14 sm:mt-16">
+          <div className="flex items-end justify-between gap-4 xs:gap-6 flex-wrap">
             <SectionHeading
               eyebrow="Location"
               title="Find Us"
@@ -153,12 +153,12 @@ export default function Contact() {
             />
           </div>
 
-          <Reveal className="mt-8">
-            <div className="overflow-hidden rounded-3xl shadow-xl border border-beige/10 bg-beige/5">
+          <Reveal className="mt-6 xs:mt-8">
+            <div className="overflow-hidden rounded-2xl xs:rounded-3xl shadow-xl border border-beige/10 bg-beige/5">
               <iframe
                 src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d886.9151314487649!2d78.00375982841598!3d27.22980609100443!2m3!1f0!2f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x397479e597a93405%3A0xbd76ca34e2a39657!2sVimal%20Super%20market!5e0!3m2!1sen!2sin!4v1777635718027!5m2!1sen!2sin"
                 width="100%"
-                height="400"
+                height="300"
                 style={{ border: 0 }}
                 loading="lazy"
                 className="block w-full"
@@ -166,12 +166,13 @@ export default function Contact() {
             </div>
           </Reveal>
 
-          <div className="mt-6 flex justify-center sm:justify-start">
+          <div className="mt-4 xs:mt-6 flex justify-center sm:justify-start">
             <Button
               as="a"
               href="https://www.google.com/maps?q=27.22980609100443,78.00375982841598"
               target="_blank"
               rel="noopener noreferrer"
+              className="text-xs xs:text-sm"
             >
               Open in Google Maps
             </Button>

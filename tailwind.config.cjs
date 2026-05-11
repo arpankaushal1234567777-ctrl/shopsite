@@ -8,6 +8,9 @@ module.exports = {
         gold: "#d4af37",
         beige: "#f5f0e6"
       },
+      screens: {
+        xs: "360px",
+      },
       fontFamily: {
         display: ["Playfair Display", "serif"],
         sans: ["Inter", "ui-sans-serif", "system-ui"],

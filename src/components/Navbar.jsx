@@ -32,16 +32,16 @@ export default function Navbar() {
 
   return (
     <header className="fixed inset-x-0 top-0 z-50">
-      <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
-        <div className="mt-4 glass rounded-2xl">
-          <div className="flex items-center justify-between px-4 py-3 sm:px-6">
-            <Link to="/" className="flex items-center gap-3">
-              <img src="/logo.png" className="h-9 w-9 rounded-xl object-contain" alt="Logo" />
-              <div className="leading-tight">
-                <p className="font-display text-beige text-base">
-                  Blush and Beauty
+      <div className="mx-auto max-w-6xl px-2 xs:px-3 sm:px-6 lg:px-8">
+        <div className="mt-2 xs:mt-3 sm:mt-4 glass rounded-2xl">
+          <div className="flex items-center justify-between px-2 xs:px-3 sm:px-6 py-2.5 xs:py-3 sm:py-3">
+            <Link to="/" className="flex items-center gap-2 xs:gap-3 min-w-0">
+              <img src="/logo.png" className="h-8 xs:h-9 w-8 xs:w-9 rounded-xl object-contain flex-shrink-0" alt="Logo" />
+              <div className="leading-tight min-w-0">
+                <p className="font-display text-beige text-sm xs:text-base whitespace-nowrap truncate">
+                  Blush
                 </p>
-                <p className="text-xs text-beige/60">Luxury Salon</p>
+                <p className="text-xs text-beige/60 whitespace-nowrap truncate">Salon</p>
               </div>
             </Link>
 
@@ -93,19 +93,19 @@ export default function Navbar() {
             </div>
 
             <button
-              className="md:hidden inline-flex items-center justify-center h-10 w-10 rounded-xl border border-beige/15 bg-beige/5 hover:bg-beige/10 transition"
+              className="md:hidden inline-flex items-center justify-center h-10 w-10 rounded-lg border border-beige/15 bg-beige/5 hover:bg-beige/10 transition flex-shrink-0"
               type="button"
               aria-label="Open menu"
               onClick={() => setOpen((v) => !v)}
             >
-              <span className="text-beige/90 text-xl leading-none">
+              <span className="text-beige/90 text-lg leading-none">
                 {open ? "×" : "☰"}
               </span>
             </button>
           </div>
 
           {open ? (
-            <div className="md:hidden px-4 pb-4 sm:px-6">
+            <div className="md:hidden px-2 xs:px-3 sm:px-6 pb-3 xs:pb-4">
               <div className="grid gap-2">
                 {navLinks.map((item) => (
                   <NavLink
@@ -113,7 +113,7 @@ export default function Navbar() {
                     to={item.to}
                     className={({ isActive }) =>
                       cn(
-                        "px-4 py-3 rounded-xl text-sm transition border",
+                        "px-3 py-2.5 xs:py-3 rounded-lg text-sm transition border",
                         isActive
                           ? "text-gold bg-gold/10 border-gold/25"
                           : "text-beige/80 bg-beige/5 border-beige/10 hover:border-gold/25 hover:text-beige"
@@ -123,14 +123,14 @@ export default function Navbar() {
                     {item.label}
                   </NavLink>
                 ))}
-                <Button as="link" to="/book" className="w-full">
+                <Button as="link" to="/book" className="w-full h-11 text-sm">
                   Book Now
                 </Button>
-                <div className="pt-2 grid grid-cols-2 gap-2">
+                <div className="pt-1 xs:pt-2 grid grid-cols-2 gap-2">
                   {homeAnchors.map((a) => (
                     <button
                       key={a.hash}
-                      className="px-4 py-3 rounded-xl text-sm text-beige/80 bg-beige/5 border border-beige/10 hover:border-gold/25 hover:text-beige transition"
+                      className="px-3 py-2.5 xs:py-3 rounded-lg text-xs xs:text-sm text-beige/80 bg-beige/5 border border-beige/10 hover:border-gold/25 hover:text-beige transition"
                       onClick={() => goHomeAnchor(a.hash)}
                       type="button"
                     >

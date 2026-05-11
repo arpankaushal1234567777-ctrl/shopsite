@@ -214,9 +214,9 @@ Time: ${normalizedSelectedTime}`;
   }
 
   return (
-    <div className="py-12 sm:py-16">
+    <div className="py-8 xs:py-10 sm:py-12 md:py-16">
       <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
-        <div className="flex items-end justify-between gap-6 flex-wrap">
+        <div className="flex items-end justify-between gap-4 xs:gap-6 flex-wrap">
           <SectionHeading
             eyebrow="Book"
             title="Book an appointment"
@@ -227,44 +227,44 @@ Time: ${normalizedSelectedTime}`;
           </Button>
         </div>
 
-        <div className="mt-10 grid gap-4 lg:grid-cols-12 lg:items-start">
+        <div className="mt-8 xs:mt-10 grid gap-4 xs:gap-6 lg:grid-cols-12 lg:items-start">
           <Reveal className="lg:col-span-7">
-            <Card className="p-8">
-              <form className="grid gap-5" onSubmit={onSubmit}>
-                <label className="grid gap-2">
-                  <span className="text-sm text-beige/70">Name</span>
+            <Card className="p-4 xs:p-6 sm:p-8">
+              <form className="grid gap-4 xs:gap-5" onSubmit={onSubmit}>
+                <label className="grid gap-1.5 xs:gap-2">
+                  <span className="text-xs xs:text-sm text-beige/70">Name</span>
                   <input
                     value={form.name}
                     onChange={(e) => update("name", e.target.value)}
                     disabled={isSubmitting}
-                    className="h-12 rounded-xl bg-ink border border-beige/15 px-4 text-beige placeholder:text-beige/40 focus:outline-none focus:ring-2 focus:ring-gold/50"
+                    className="h-11 xs:h-12 rounded-lg xs:rounded-xl bg-ink border border-beige/15 px-3 xs:px-4 text-beige placeholder:text-beige/40 focus:outline-none focus:ring-2 focus:ring-gold/50 text-sm"
                     placeholder="Your name"
                     required
                   />
                 </label>
 
-                <label className="grid gap-2">
-                  <span className="text-sm text-beige/70">Phone number</span>
+                <label className="grid gap-1.5 xs:gap-2">
+                  <span className="text-xs xs:text-sm text-beige/70">Phone number</span>
                   <input
                     value={form.phone}
                     onChange={(e) => update("phone", e.target.value)}
                     disabled={isSubmitting}
-                    className="h-12 rounded-xl bg-ink border border-beige/15 px-4 text-beige placeholder:text-beige/40 focus:outline-none focus:ring-2 focus:ring-gold/50"
+                    className="h-11 xs:h-12 rounded-lg xs:rounded-xl bg-ink border border-beige/15 px-3 xs:px-4 text-beige placeholder:text-beige/40 focus:outline-none focus:ring-2 focus:ring-gold/50 text-sm"
                     placeholder="+91..."
                     required
                   />
                 </label>
 
-                <div className="grid gap-4 sm:grid-cols-2">
-                  <label className="grid gap-2">
-                    <span className="text-sm text-beige/70">
-                      Service selection
+                <div className="grid gap-3 xs:gap-4 sm:grid-cols-2">
+                  <label className="grid gap-1.5 xs:gap-2">
+                    <span className="text-xs xs:text-sm text-beige/70">
+                      Service
                     </span>
                     <select
                       value={form.service}
                       onChange={(e) => update("service", e.target.value)}
                       disabled={isSubmitting}
-                      className="h-12 rounded-xl bg-ink border border-beige/15 px-4 text-beige focus:outline-none focus:ring-2 focus:ring-gold/50"
+                      className="h-11 xs:h-12 rounded-lg xs:rounded-xl bg-ink border border-beige/15 px-3 xs:px-4 text-beige focus:outline-none focus:ring-2 focus:ring-gold/50 text-sm"
                     >
                       {serviceOptions.map((t) => (
                         <option key={t} value={t}>
@@ -274,26 +274,26 @@ Time: ${normalizedSelectedTime}`;
                     </select>
                   </label>
 
-                  <label className="grid gap-2">
-                    <span className="text-sm text-beige/70">Date</span>
+                  <label className="grid gap-1.5 xs:gap-2">
+                    <span className="text-xs xs:text-sm text-beige/70">Date</span>
                     <input
                       type="date"
                       value={form.date}
                       onChange={(e) => update("date", e.target.value)}
                       disabled={isSubmitting}
-                      className="h-12 rounded-xl bg-ink border border-beige/15 px-4 text-beige focus:outline-none focus:ring-2 focus:ring-gold/50"
+                      className="h-11 xs:h-12 rounded-lg xs:rounded-xl bg-ink border border-beige/15 px-3 xs:px-4 text-beige focus:outline-none focus:ring-2 focus:ring-gold/50 text-sm"
                       required
                     />
                   </label>
                 </div>
 
-                <label className="grid gap-2">
-                  <span className="text-sm text-beige/70">Time</span>
+                <label className="grid gap-1.5 xs:gap-2">
+                  <span className="text-xs xs:text-sm text-beige/70">Time</span>
                   <select
                     value={form.time}
                     onChange={(e) => update("time", e.target.value)}
                     disabled={isSubmitting || isLoadingSlots || !form.date || availableSlots.length === 0}
-                    className="h-12 rounded-xl bg-ink border border-beige/15 px-4 text-beige focus:outline-none focus:ring-2 focus:ring-gold/50"
+                    className="h-11 xs:h-12 rounded-lg xs:rounded-xl bg-ink border border-beige/15 px-3 xs:px-4 text-beige focus:outline-none focus:ring-2 focus:ring-gold/50 text-sm"
                     required
                   >
                     <option value="">
