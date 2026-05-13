@@ -195,47 +195,38 @@ export default function Admin() {
     async function loadGalleryFiles() {
       setIsLoadingGallery(true);
 
-      const bucketName = "gallery";
-      const folderPath = "";
-      const { data, error } = await supabase.storage.from(bucketName).list(folderPath, {
-        limit: 100,
-        offset: 0,
-        sortBy: { column: "name", order: "asc" },
-      });
+      try {
+        console.log("[Admin Gallery] Fetching images from backend API...");
 
-      console.log("Admin gallery list() bucket:", bucketName);
-      console.log("Admin gallery list() path:", folderPath);
-      console.log("Admin gallery list() raw response:", data);
-
-      if (!isActive) {
-        return;
-      }
-
-      if (error) {
-        console.error("Failed to fetch gallery files:", error);
-        setGalleryFiles([]);
-        setIsLoadingGallery(false);
-        return;
-      }
-
-      const nextFiles = (data ?? [])
-        .filter((item) => item.name && !item.name.endsWith("/"))
-        .map((item) => {
-          const { data: publicUrlData } = supabase.storage
-            .from(bucketName)
-            .getPublicUrl(item.name);
-
-          console.log("Admin gallery public URL:", item.name, publicUrlData.publicUrl);
-
-          return {
-            name: item.name,
-            url: publicUrlData.publicUrl,
-          };
+        const apiUrl = import.meta.env.VITE_API_URL || "http://localhost:5000/api";
+        const response = await fetch(`${apiUrl}/gallery`, {
+          method: "GET",
+          headers: { "Content-Type": "application/json" },
         });
 
-      console.log("Fetched admin gallery images:", nextFiles);
-      setGalleryFiles(nextFiles);
-      setIsLoadingGallery(false);
+        if (!isActive) return;
+
+        if (!response.ok) {
+          throw new Error(`API error: ${response.status}`);
+        }
+
+        const data = await response.json();
+
+        if (data.success && Array.isArray(data.data)) {
+          console.log(`[Admin Gallery] Loaded ${data.data.length} images`);
+          setGalleryFiles(data.data);
+        } else {
+          console.error("[Admin Gallery] Invalid API response:", data);
+          setGalleryFiles([]);
+        }
+      } catch (error) {
+        console.error("[Admin Gallery] Failed to fetch files:", error);
+        setGalleryFiles([]);
+      } finally {
+        if (isActive) {
+          setIsLoadingGallery(false);
+        }
+      }
     }
 
     loadGalleryFiles();
@@ -406,27 +397,66 @@ export default function Admin() {
     const safeName = file.name.replace(/\s+/g, "-").toLowerCase();
     const fileName = `${Date.now()}-${safeName}`;
 
-    const { error } = await supabase.storage.from("gallery").upload(fileName, file);
+    try {
+      console.log("[Admin] Uploading gallery image:", fileName);
 
-    if (error) {
-      console.error("Failed to upload gallery image:", error);
-      alert("Something went wrong");
+      // Upload to Supabase Storage
+      const { error: uploadError } = await supabase.storage.from("gallery").upload(fileName, file);
+
+      if (uploadError) {
+        throw new Error(uploadError.message);
+      }
+
+      console.log("[Admin] Image uploaded to storage:", fileName);
+
+      // Get public URL
+      const { data: publicUrlData } = supabase.storage.from("gallery").getPublicUrl(fileName);
+
+      if (!publicUrlData?.publicUrl) {
+        throw new Error("Failed to get public URL");
+      }
+
+      // Record in backend database
+      const apiUrl = import.meta.env.VITE_API_URL || "http://localhost:5000/api";
+      console.log("[Admin] Recording image in database:", apiUrl);
+
+      const dbResponse = await fetch(`${apiUrl}/gallery`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          fileName,
+          url: publicUrlData.publicUrl,
+          storagePath: fileName,
+          size: file.size,
+          mimeType: file.type,
+        }),
+      });
+
+      const dbData = await dbResponse.json();
+      console.log("[Admin] Database response:", dbData);
+
+      if (!dbResponse.ok || !dbData.success) {
+        throw new Error(dbData.error || "Failed to save image record");
+      }
+
+      // Add to admin state
+      setGalleryFiles((prev) => [
+        { _id: dbData.data._id, fileName, url: publicUrlData.publicUrl },
+        ...prev,
+      ]);
+
+      // Signal to Gallery page that content has updated
+      localStorage.setItem("gallery_updated", Date.now().toString());
+
+      alert("✓ Gallery image uploaded successfully!");
       setIsUploadingGallery(false);
       e.target.value = "";
-      return;
+    } catch (error) {
+      console.error("[Admin] Upload failed:", error);
+      alert(`❌ Upload failed: ${error.message}`);
+      setIsUploadingGallery(false);
+      e.target.value = "";
     }
-
-    const { data: publicUrlData } = supabase.storage
-      .from("gallery")
-      .getPublicUrl(fileName);
-
-    setGalleryFiles((prev) => [
-      { name: fileName, url: publicUrlData.publicUrl },
-      ...prev,
-    ]);
-    alert("Gallery image uploaded successfully");
-    setIsUploadingGallery(false);
-    e.target.value = "";
   }
 
   function resetServiceForm() {
@@ -641,7 +671,7 @@ export default function Admin() {
     setBusyServiceId("");
   }
 
-  async function deleteGalleryImage(fileName) {
+  async function deleteGalleryImage(fileName, imageId) {
     const confirmed = window.confirm("Delete this gallery image?");
     if (!confirmed) {
       return;
@@ -649,18 +679,37 @@ export default function Admin() {
 
     setBusyGalleryFileName(fileName);
 
-    const { error } = await supabase.storage.from("gallery").remove([fileName]);
+    try {
+      console.log("[Admin] Deleting gallery image:", { fileName, imageId });
 
-    if (error) {
-      console.error("Failed to delete gallery image:", error);
-      alert("Something went wrong");
+      const response = await fetch(
+        `${import.meta.env.VITE_API_URL || "http://localhost:5000/api"}/gallery/${imageId}`,
+        {
+          method: "DELETE",
+          headers: { "Content-Type": "application/json" },
+        }
+      );
+
+      const data = await response.json();
+      console.log("[Admin] Delete API response:", data);
+
+      if (!response.ok || !data.success) {
+        throw new Error(data.error || "Failed to delete image");
+      }
+
+      // Remove from admin panel state immediately
+      setGalleryFiles((prev) => prev.filter((file) => file._id !== imageId));
+
+      // Signal to Gallery page that content has updated
+      localStorage.setItem("gallery_updated", Date.now().toString());
+
+      alert("✓ Gallery image deleted successfully!");
       setBusyGalleryFileName("");
-      return;
+    } catch (error) {
+      console.error("[Admin] Failed to delete gallery image:", error);
+      alert(`❌ Failed to delete image: ${error.message}`);
+      setBusyGalleryFileName("");
     }
-
-    console.log("Deleted gallery image:", fileName);
-    setGalleryFiles((prev) => prev.filter((file) => file.name !== fileName));
-    setBusyGalleryFileName("");
   }
 
   async function handleLogout() {
@@ -997,35 +1046,37 @@ export default function Admin() {
             </div>
 
             {isLoadingGallery ? (
-              <p className="mt-6 text-sm text-beige/65">Loading gallery images...</p>
+              <div className="mt-6 flex justify-center">
+                <div className="inline-flex items-center gap-2 text-sm text-beige/60">
+                  <div className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-beige/30 border-t-beige/90" />
+                  Loading gallery images...
+                </div>
+              </div>
             ) : galleryFiles.length === 0 ? (
               <p className="mt-6 text-sm text-beige/65">
                 No uploaded gallery images yet.
               </p>
             ) : (
               <div className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-                {galleryFiles.map((file, index) => (
+                {galleryFiles.map((file) => (
                   <div
-                    key={`${file.name}-${index}`}
+                    key={file._id}
                     className="group relative overflow-hidden rounded-2xl border border-beige/10 bg-beige/5"
                   >
                     <img
                       src={file.url}
-                      alt={file.name}
+                      alt="Gallery thumbnail"
                       className="h-40 w-full object-cover opacity-90 transition duration-500 group-hover:scale-[1.02] group-hover:opacity-100"
                       loading="lazy"
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-ink/80 via-transparent to-transparent opacity-80" />
-                    <p className="absolute bottom-3 left-3 right-3 truncate text-xs text-beige/90">
-                      {file.name}
-                    </p>
                     <button
                       type="button"
-                      onClick={() => deleteGalleryImage(file.name)}
-                      disabled={busyGalleryFileName === file.name}
-                      className="absolute right-3 top-3 rounded-full border border-red-400/20 bg-red-500/80 px-3 py-1 text-xs font-medium text-white opacity-0 transition group-hover:opacity-100 disabled:cursor-not-allowed disabled:opacity-50"
+                      onClick={() => deleteGalleryImage(file.fileName, file._id)}
+                      disabled={busyGalleryFileName === file.fileName}
+                      className="absolute right-3 top-3 rounded-full border border-red-400/20 bg-red-500/80 px-3 py-1 text-xs font-medium text-white opacity-0 transition group-hover:opacity-100 disabled:cursor-not-allowed disabled:opacity-50 hover:bg-red-600"
                     >
-                      {busyGalleryFileName === file.name ? "..." : "Delete"}
+                      {busyGalleryFileName === file.fileName ? "Deleting..." : "Delete"}
                     </button>
                   </div>
                 ))}
